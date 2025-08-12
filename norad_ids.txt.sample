@@ -1,0 +1,12 @@
+# Sample NORAD IDs for satellite tracking
+# Copy this file to norad_ids.txt and modify as needed
+# Format: comma-separated NORAD catalog numbers
+
+# International Space Station (ISS)
+25544,
+
+# Hubble Space Telescope
+20580,
+
+# Some Starlink satellites (bright examples)
+45344,48274,45657,46027

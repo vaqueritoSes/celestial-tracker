@@ -1,0 +1,26 @@
+# Core Dependencies
+aiohttp>=3.8.0
+websockets>=11.0
+asyncio-mqtt>=0.16.0
+
+# Astronomical Calculations
+skyfield>=1.46
+numpy>=1.24.0
+
+# API and Web
+requests>=2.31.0
+flask>=3.0.0
+flask-cors>=4.0.0
+
+# Logging and Display
+rich>=13.5.0
+
+# Configuration
+configparser>=5.3.0
+
+# Time and Date
+python-dateutil>=2.8.2
+
+# Optional: For development
+pytest>=7.4.0
+pytest-asyncio>=0.21.0

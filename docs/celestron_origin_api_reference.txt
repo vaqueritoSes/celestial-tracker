@@ -1,0 +1,3567 @@
+Celestron Origin API
+
+
+
+Automatically generated from Do not edit!
+
+Contents
+
+on 5/22/2024, 3:19:49 PM.
+
+
+
+
+Description
+Commands
+Camera Debug DewHeater Disk Environment
+FactoryCalibrationController Focuser
+HostController ImageServer LedRing LiveStream Mount Network
+OrientationSensor System TaskController
+Notifications Enums Types
+
+Description
+
+This document defines the command and response system of the Origin architecture. This document is still under active development. New commands will be added or removed as necessary.
+The system is based around a JSON based messaging via WebSockets. Each message
+
+contains	,
+
+,	,	, and
+
+. See
+
+CommandHeaders. Messages may contain extra feilds as needed. For example, to set capture
+
+parameters
+
+and
+
+, the message could be:
+
+
+
+Some fields are optional. In this document, optional types have a "?" suffix. For example, in
+
+Camera.SetCaptureParameters, the
+
+field has the type
+
+, meaning the
+
+field is optional, and the ISO capture parameter is only set if the field is included in the message payload.
+
+It is the responsibility of the sender set the	to something meaniful to the sender.
+
+
+Every response contains
+
+, and
+
+. See ResponseHeaders. Every
+
+message will be responded to with a message containing the inversed
+
+/	, and the same
+
+and
+
+. For example, to check if
+
+the live stream is disabled, the command would be:
+
+Origin would then respond with:
+
+
+Commands
+
+166 commands
+
+Camera Commands
+
+5 commands
+
+Camera.GetCameraInfo Camera.GetCaptureParameters Camera.GetFilter Camera.SetCaptureParameters Camera.SetFilter
+
+Camera.GetCameraInfo
+Request
+
+Gets the camera name and capabilities. The min and max values can be used to determine valid values for the SetCaptureParameters command.
+Response
+
+Sent to the client by server, in response to the GetCameraInfo Command.
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?CameraNamestringName of the camera.IsColorbooleanCamera is a full color camera.MaxImageWidthintegerMax width of the image, in pixels.MaxImageHeightintegerMax height of the image, in pixels.
+MaxBinning
+integerMaximum binning value supported by the camera. Minimum is 1.Minimum exposure value supported by the
+MinExposuredoublecamera, in seconds.
+MaxExposure
+doubleMaximum exposure value supported by the camera, in seconds.MinIsointegerMinimum ISO value supported by the camera.MaxIsointegerMaximum ISO value supported by the camera.MinOffsetintegerMinimum offset value supported by the camera.MaxOffsetintegerMaximum offset value supported by the camera.
+MaxRedBalance
+integerMaximum individual channel gain for the red channel.
+MaxGreenBalance
+integerMaximum individual channel gain for the green channel.
+MaxBlueBalance
+integerMaximum individual channel gain for the blue channel.SdkVersionstring?The camera SDK version string.FirmwareVersionstring?The camera firmware version string.FpgaVersionstring?The camera FPGA version string.
+Camera.GetCaptureParameters
+Request
+
+Gets the current camera capture parameters.
+
+Response
+
+Sent to the client by server, in response to the GetCaptureParameters Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?BinningintegerBinning, 1 for default, 2 means 2x2, etcBitDepthintegerBit depth, 8 for 8-bit, 16 for 16 -bit, 24 for 24-bit
+
+
+ColorBBalance
+doubleBlue color adjustment in percentage (0-100%) where 0% means no Blue, and 100% means full Blue
+ColorGBalance
+doubleGreen color adjustment in percentage (0-100%) where 0% means no Green, and 100% means full Green
+ColorRBalance
+doubleRed color adjustment in percentage (0-100%) where 0% means no Red, and 100% means full Red
+Exposure
+doubleLength of exposure in seconds to take during a single image capture
+
+ISO
+
+ISOValueEnumAllowed values for camera's light sensitivity, i.e. gain, from least to most light-sensitive. ISO 100 roughly corresponds to gain 10 dB, ISO 200 to 20 dB, and ISO 2000 to 40 dB. Treat these values with caution.OffsetintegerOffset setting
+Camera.GetFilter
+Request
+
+Gets the name of the currently installed camera filter.
+
+Response
+
+Sent to the client by server, in response to the GetFilter Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Filter
+stringname of filter installed in camera. Currently returned values are "Clear" or "Nebula".
+Camera.SetCaptureParameters
+Request
+
+Sets the current capture parameters. All fields are optional.
+
+Request Payload
+
+NameTypeDescriptionBinninginteger?Binning, 1 for default, 2 means 2x2, etcBitDepthinteger?Bit depth, 8 for 8-bit, 16 for 16 -bit, 24 for 24-bit
+ColorBBalance
+double?Blue color adjustment in percentage (0-100%) where 0% means no Blue, and 100% means full Blue
+ColorGBalance
+double?Green color adjustment in percentage (0-100%) where 0% means no Green, and 100% means full Green
+ColorRBalance
+double?Red color adjustment in percentage (0-100%) where 0% means no Red, and 100% means full Red
+Exposure
+double?Length of exposure in seconds to take during a single image capture
+
+ISO
+
+ISOValueEnum?Allowed values for camera's light sensitivity, i.e. gain, from least to most light-sensitive. ISO 100 roughly corresponds to gain 10 dB, ISO 200 to 20 dB, and ISO 2000 to 40 dB. Treat these values with caution.Offsetinteger?Set camera offset setting
+Response
+
+Sent to the client by server, in response to the SetCaptureParameters Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Camera.SetFilter
+Request
+
+Sets the currently installed camera filter name.
+
+Request Payload
+
+NameTypeDescription
+Filter
+stringname of filter installed in camera; currently accepted are "Clear" or "Nebula".
+Response
+
+Sent to the client by server, in response to the SetFilter Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug Commands
+
+24 commands
+
+Debug.CheckCameraStatus Debug.ConfigureEthernetOnDirectConnect Debug.CopyFakeImagesFromFlashdrive Debug.DeleteFakeImageDirectories Debug.DeleteImageDirectory Debug.DewHeaterTest Debug.EnableDebugPrintAveragedImages Debug.FakeFactoryCalibration Debug.FakePlateSolve Debug.GetAutoFocusSettings Debug.NewInitialization Debug.NewPreciseGoto Debug.ReadImageAndGetPlateResults Debug.RemoveAllKnownNetworks Debug.RunEnduranceTest Debug.RunFocuserTemperatureTest Debug.RunHotSpotCentering
+
+Debug.RunTrackingDebugger Debug.SetTomcatPort Debug.SetUsbBootMode Debug.SetAutoFocusSettings Debug.SimulateErrorCode Debug.TestDarkGeneration Debug.UseRealCamera
+
+Debug.CheckCameraStatus
+Response
+
+Return current camera status
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?StatusstringThe current status of the camera on the USB bus.
+Debug.ConfigureEthernetOnDirectConnect
+Response
+
+Response to ConfigureEthernetOnDirectConnect
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug.CopyFakeImagesFromFlashdrive
+Request
+
+Transfer fake images from a file called FakeImages.zip stored on a flashdrive plugged in to a USB port.
+
+Response
+
+Sent to the client by server, in response to the CopyFakeImagesFromFlashdrive Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug.DeleteFakeImageDirectories
+Request
+
+Delete all FAKE image diretories created during indoor testing
+
+Response
+
+Sent to the client by server, in response to the DeleteFakeImageDirectories Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug.DeleteImageDirectory
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescriptionDirectoryNamestringDelete specific object image directory from Astrophotography
+Response
+
+Sent to the client by server, in response to the DeleteImageDirectory Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug.DewHeaterTest
+Response
+
+Sent to the client by server, in response to the DewHeaterTest Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug.EnableDebugPrintAveragedImages
+Response
+
+Enable debug printing of averaged images to the temp directory. (Response)
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug.FakeFactoryCalibration
+Request
+
+Force factory calibration to be set as (in)complete.
+
+Request Payload
+
+NameTypeDescriptionCompletebooleanstate to set factory calibration to
+Response
+
+Sent to the client by server, in response to the FakeFactoryCalibration Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug.FakePlateSolve
+Request
+
+camera capture is replaced by a read from mount model
+
+Request Payload
+
+NameTypeDescriptionIsEnabledbooleancamera capture is replaced by a read from mount model
+Response
+
+camera capture is replaced by a read from mount model
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug.GetAutoFocusSettings
+Request
+
+Gets the current auto focus settings as a JSON string.
+
+Response
+
+Sent to the client by server, in response to the GetAutoFocusSettings Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?ValuestringCurrent auto focus settings as a JSON string.
+Debug.NewInitialization
+Request
+
+Enables the new Initialization. If New Precise Goto is turned off, this setting is ignored and old initialization is used.
+Request Payload
+
+NameTypeDescriptionShouldUseNewInitbooleanset to true in order to use the new initialization
+Response
+
+Sent to the client by server, in response to the NewInitialization Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug.NewPreciseGoto
+Request
+
+Enables the new precise goto. This is rquired if NewInitialization is desired
+
+Request Payload
+
+NameTypeDescriptionShouldUseNewPreciseGotobooleanset to true in order to use the new goto
+Response
+
+Sent to the client by server, in response to the NewPreciseGoto Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug.ReadImageAndGetPlateResults
+Request
+
+(No description)
+
+Request Payload
+
+Name	Type	DescriptionDrawContoursbooleanImageFileNamestring?
+Response
+
+Read an image from disk and get the plate maker results from it. (Response).
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug.RemoveAllKnownNetworks
+Request
+
+(Deprecated) Clear all saved wifi passwords.
+
+Response
+
+Sent to the client by server, in response to the RemoveAllKnownNetworks Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug.RunEnduranceTest
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescription
+DewHeaterPowerLevel
+integer?0 - 100 power of the dew heater to run at continuously during testing
+PercentageSlewing
+integer?0 - 100 percentage of how much slewing vs tracking/imaging
+Response
+
+Sent to the client by server, in response to the RunEnduranceTest Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug.RunFocuserTemperatureTest
+Response
+
+Sent to the client by server, in response to the RunFocuserTemperatureTest Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+
+
+Debug.RunHotSpotCentering
+Request
+
+Command to start hotspot centering
+
+Response
+
+Sent to the client by server, in response to the RunHotSpotCentering Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug.RunTrackingDebugger
+Response
+
+Sent to the client by server, in response to the RunTrackingDebugger Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug.SetTomcatPort
+Request
+
+Change the port that Tomcat uses to serve the web app.
+
+Request Payload
+
+NameTypeDescriptionPortintegerThe port to serve the web app on.
+Response
+
+Sent to the client by server, in response to the SetTomcatPort Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug.SetUsbBootMode
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescriptionEnablebooleanIf true, USB boot mode will be enabled. If false, it will be disabled.
+Response
+
+Enable or disable USB boot mode. This command will cause the system to reboot. (Response)
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug.SetAutoFocusSettings
+Request
+
+(No description)
+
+Request Payload
+
+Name	Type	DescriptionFocusPositionintegerThe focus positionFocusTemperaturedoubleThe focus temperature
+Response
+
+Sent to the client by server, in response to the SetAutoFocusSettings Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug.SimulateErrorCode
+Request
+
+Request that a specific error code be sent as an Error.Error notification by Origin
+
+Request Payload
+
+NameTypeDescriptionErrorCodeErrorCodeEnum
+Response
+
+Sent to the client by server, in response to the SimulateErrorCode Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug.TestDarkGeneration
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescription
+ExposureTimeSintegerExposure time in seconds to test dark generation for specified exposure settingISOintegerISO setting for testing dark generation
+Response
+
+Sent to the client by server, in response to the TestDarkGeneration Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Debug.UseRealCamera
+Request
+
+Calls to the camera will now go to the actual camera
+
+Response
+
+Sent to the client by server, in response to the UseRealCamera Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+DewHeater Commands
+
+3 commands
+
+DewHeater.EnableAuto DewHeater.EnableManual DewHeater.GetStatus
+
+DewHeater.EnableAuto
+
+Request
+
+Set dew heater aggression level. Dew heater will be automatically controlled by the SmartScope considering the dew point.
+Request Payload
+
+NameTypeDescription
+Aggression
+integer?Aggression level set from 1 to 10. If omitted, will switch to auto mode at current aggression level.
+Response
+
+Sent to the client by server, in response to the EnableAuto Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+DewHeater.EnableManual
+Request
+
+Forcefully turn ON dew heater.
+
+Request Payload
+
+NameTypeDescription
+PowerLevel
+double?Value set between 0.0 to 1.0 (where 0.0 is off and 1.0 is maximum power). If omitted will swtich to manual mode at current power level.
+Response
+
+Sent to the client by server, in response to the EnableManual Command
+
+Response Payload
+
+NameTypeDescription
+ErrorCodeErrorCodeEnum?ErrorMessagestring?
+DewHeater.GetStatus
+Request
+
+Get dew heater power level.
+
+Response
+
+Response to a command, or notification sent to the client by the server
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?AggressionintegerInteger value between 1 to 10HeaterLeveldoubleCurrent heater level returned between 0 to 1ManualPowerLeveldoubleManual power level returned between 0 to 1ModestringAuto or Manual
+Disk Commands
+
+1 commands
+
+Disk.GetStatus
+
+Disk.GetStatus
+Request
+
+Returns the number of free bytes on the SD card.
+
+Response
+
+Returns the current status of the disk.
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?Capacityint64Capacity of the SD card, in bytes.FreeBytesint64Number of free bytes on the SD card.
+Level
+enumIndicates the current disk space level. (One of: OK, LOW)
+Environment Commands
+
+5 commands
+
+Environment.GetFans Environment.GetSensors Environment.GetStatus Environment.RecalibrateEnvironmentSensor Environment.SetFans
+
+Environment.GetFans
+Request
+
+Queries states of OTA and CPU fans (on or off)
+
+Response
+
+Sent to the client by server, in response to the GetFans Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?CpuFanOnbooleanTrue if CPU fan is turned on, false if OTA fan is off.OtaFanOnbooleanTrue if OTA fan is turned on, false if OTA fan is off.
+Environment.GetSensors
+Request
+
+Determines which sensors the SmartScope has
+
+Response
+
+Sent to the client by server, in response to the GetSensors Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?HasAmbientTemperaturebooleanHasCameraTemperaturebooleanHasCpuTemperaturebooleanHasDewHeaterTemperaturebooleanHasHumiditySensorboolean
+Environment.GetStatus
+Request
+
+Get temperature from all the sensors connected to the SmartScope.
+
+Response
+
+Response to a command, or notification sent to the client by the server
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?AmbientTemperaturedouble?Ambient temperature in degrees CCamera internal sensor temperature in
+CameraTemperaturedouble?degrees C
+CpuFanOn
+boolean?True if CPU fan is turned on, false if CPU fan is off.
+CpuTemperature
+double?Raspberry PI core CPU temperature in degrees C
+DewPoint
+double?Dew point in degrees C, calculated by SmartScope using ambient temperature
+FrontCellTemperature
+double?Surface temperature of the front cell surface in degrees CHumiditydouble?Relative humidity level from 0.0 to 1.0
+OtaFanOn
+boolean?True if OTA fan is turned on, false if OTA fan is off.
+Recalibrating
+boolean?ON/OFF status of the self heater of the humidity sensor
+Environment.RecalibrateEnvironmentSensor
+Request
+
+Run recalibration of the environmental sensor
+
+Response
+
+Sent to the client by server, in response to the RecalibrateEnvironmentSensor Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Environment.SetFans
+Request
+
+Turns CPU and/or OTA fans on or off. Fan speeds may be automatically adjusted by the scope.
+
+Request Payload
+
+Name	Type	Description
+CpuFanOn
+boolean?True if CPU fan should be turned on, false if CPU fan should turn off.
+OtaFanOn
+boolean?True if OTA fan should be turned on, false if OTA fan should turn off.
+Response
+
+Sent to the client by server, in response to the SetFans Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController  Commands
+
+31 commands
+
+FactoryCalibrationController.BeginFactoryCalibration FactoryCalibrationController.CancelAutoCapture FactoryCalibrationController.CancelAutoFocus FactoryCalibrationController.CaptureFAImage FactoryCalibrationController.CheckCameraOrientation FactoryCalibrationController.ClearFAImages FactoryCalibrationController.DisableLiveStream FactoryCalibrationController.FAImagesExist FactoryCalibrationController.FATestCompleted FactoryCalibrationController.FactoryCollimationCompleted FactoryCalibrationController.GenerateFAImagesZipFile FactoryCalibrationController.GetFAImageCaptureMode FactoryCalibrationController.GetSKUNumber FactoryCalibrationController.GetSerialNumber FactoryCalibrationController.GetStatus
+
+FactoryCalibrationController.GetVersionInfo FactoryCalibrationController.HaltTasks FactoryCalibrationController.MoveStar FactoryCalibrationController.RunAutoFAImageCapture FactoryCalibrationController.RunFactoryAutoFocus FactoryCalibrationController.RunFocuserCalibration FactoryCalibrationController.RunManualFAImageCapture FactoryCalibrationController.SetSKUNumber FactoryCalibrationController.SetSerialNumber FactoryCalibrationController.SetTestDate FactoryCalibrationController.TransferFAImagesToFlashdrive FactoryCalibrationController.VerifiedCamera FactoryCalibrationController.VerifiedFans FactoryCalibrationController.VerifiedLedRing FactoryCalibrationController.VerifiedOrientationSensor FactoryCalibrationController.VerifiedWiFi
+
+FactoryCalibrationController.BeginFactoryCalibration
+Request
+
+Begin the calibration phase - user will select the phase
+
+Request Payload
+
+NameTypeDescription
+Phase
+CalibrationPhaseEnumNames the currently running Factory Calibration Phase.
+Response
+
+Sent to the client by server, in response to the BeginFactoryCalibration Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.CancelAutoCapture
+Request
+
+Cancel the auto FA image capture
+
+Response
+
+Sent to the client by server, in response to the CancelAutoCapture Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.CancelAutoFocus
+Request
+
+Cancel the auto focus routine
+
+Response
+
+Sent to the client by server, in response to the CancelAutoFocus Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.CaptureFAImage
+Request
+
+Capture specified images at the specified pixel coordinates
+
+Request Payload
+
+NameTypeDescriptionLocationXdoublePixel X coordinate
+LocationYdoublePixel Y coordinateNumOfImagesintegerNumber of images need to be captured
+Response
+
+Sent to the client by server, in response to the CaptureFAImage Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.CheckCameraOrientation
+Request
+
+Send this command to check camera orientation
+
+Response
+
+Sent to the client by server, in response to the CheckCameraOrientation Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.ClearFAImages
+Request
+
+Command to delete all saved FAT images
+
+Response
+
+Sent to the client by server, in response to the ClearFAImages Command
+
+Response Payload
+
+
+
+ErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.DisableLiveStream
+Request
+
+Disable the live stream when in the idle state
+
+Request Payload
+
+NameTypeDescription
+Disable
+booleanSend TRUE to disable the Live Stream when in idle state DEFAULT: FALSE
+Response
+
+Sent to the client by server, in response to the DisableLiveStream Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.FAImagesExist
+Response
+
+Check if there are any FA images in the FA_IMAGES_PATH directory. (Response)
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?ValuebooleanTrue iff FA images are saved to disk.
+FactoryCalibrationController.FATestCompleted
+
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescriptionCompletedbooleanMark FA Test completed DEFAULT: FALSE
+Response
+
+Sent to the client by server, in response to the FATestCompleted Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.FactoryCollimationCompleted
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescriptionCompletedbooleanMark factory collimation is completed DEFAULT: FALSE
+Response
+
+Sent to the client by server, in response to the FactoryCollimationCompleted Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.GenerateFAImagesZipFile
+Request
+
+Command to generate zip file containing all the FA test images
+
+Response
+
+Sent to the client by server, in response to the GenerateFAImagesZipFile Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.GetFAImageCaptureMode
+Response
+
+Sent to the client by server, in response to the GetFAImageCaptureMode Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+CaptureMode
+stringDetermines which capture mode is set AUTO/MANUAL
+FactoryCalibrationController.GetSKUNumber
+Response
+
+Sent to the client by server, in response to the GetSKUNumber Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?
+ErrorMessagestring?SKUNumberstring?To verify if it is the same product
+FactoryCalibrationController.GetSerialNumber
+Response
+
+Sent to the client by server, in response to the GetSerialNumber Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?SerialNumberstring?Confirm/Retrieve serial number whenever necessary
+FactoryCalibrationController.GetStatus
+Response
+
+Response to a command, or notification sent to the client by the server
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?CollimationInfoCollimationInfoType?
+CompletedPhases
+array<CalibrationPhaseEnum>None or list of strings of phase names
+CurrentPhase
+CalibrationPhaseEnumNames the currently running Factory Calibration Phase.DarkGenerationInfoDarkGenerationInfoType?FATestInfoFATestInfoType?FlatGenerationInfoFlatGenerationInfoType?
+HardwareCalibrationInfoHardwareCalibrationInfoType?
+IsCalibrated
+booleanTRUE if factory calibration is completed
+FactoryCalibrationController.GetVersionInfo
+Request
+
+Version numbers of core and other accessories
+
+Response
+
+Sent to the client by server, in response to the GetVersionInfo Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?CoreVersionstringCore version number
+SFM100Version
+string?If SFM100/Focus motor controller version number (Empty if not found)
+SMC100Version
+string?If SMC100/Telescope motor controller version number (Empty if not found)
+FactoryCalibrationController.HaltTasks
+Request
+
+Will halt an active process (imaging, streaming, focusing, aligning, etc), and return SmartScope to an idle state
+Response
+
+Sent to the client by server, in response to the HaltTasks Command
+
+Response Payload
+
+NameTypeDescriptionErrorCodeErrorCodeEnum?
+ErrorMessagestring?
+FactoryCalibrationController.MoveStar
+Request
+
+Move the star to a specified location on the image
+
+Request Payload
+
+Name	Type	DescriptionLocationXdoublePixel X coordinateLocationYdoublePixel Y coordinate
+Response
+
+Sent to the client by server, in response to the MoveStar Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.RunAutoFAImageCapture
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescriptionCenterLocationXdoublePixel X coordinate of image centerCenterLocationYdoublePixel Y coordinate of image centerLeftXdoublePixel X coordinate of image Left X coordinateLowerYdoublePixel Y coordinate of image Lower Y coordinateRightXdoublePixel Y coordinate of image Right X coordinate
+UpperYdoublePixel X coordinate of image Upper Y coordinate
+Response
+
+Sent to the client by server, in response to the RunAutoFAImageCapture Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.RunFactoryAutoFocus
+Request
+
+(No description)
+
+Request Payload
+
+Name	Type	DescriptionFullRangeinteger?Full sweep range for finding rough focusFullStepSizeinteger?Step size for finding rough focusShortRangeinteger?Short sweep range for fine focusingShortStepSizeinteger?Short step size for fine foucsingStartPositioninteger?Starting position of the auto fouce if known
+Response
+
+Sent to the client by server, in response to the RunFactoryAutoFocus Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.RunFocuserCalibration
+
+Request
+
+Start focuser calibration
+
+Response
+
+Sent to the client by server, in response to the RunFocuserCalibration Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.RunManualFAImageCapture
+Request
+
+Set capture mode to manual capture
+
+Response
+
+Sent to the client by server, in response to the RunManualFAImageCapture Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.SetSKUNumber
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescriptionSKUNumberstringSKU number associated with the product
+Response
+
+Sent to the client by server, in response to the SetSKUNumber Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.SetSerialNumber
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescriptionSerialNumberstringSerial number of the OTA
+Response
+
+Sent to the client by server, in response to the SetSerialNumber Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.SetTestDate
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescriptionDatestringDate whenever QA app was running. Date format: DD MM YYYY
+Response
+
+Sent to the client by server, in response to the SetTestDate Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.TransferFAImagesToFlashdrive
+Request
+
+Command to transfer zip file containing all the FA test images to a flashdrive
+
+Response
+
+Sent to the client by server, in response to the TransferFAImagesToFlashdrive Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.VerifiedCamera
+Request
+
+Set user selection if camera are working
+
+Request Payload
+
+NameTypeDescriptionVerifiedbooleanTRUE - if working, FALSE - if failed DEFAULT: FALSE
+Response
+
+Sent to the client by server, in response to the VerifiedCamera Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.VerifiedFans
+Request
+
+Set user selection if fans are working
+
+Request Payload
+
+NameTypeDescriptionVerifiedbooleanTRUE - if working, FALSE - if failed DEFAULT: FALSE
+Response
+
+Sent to the client by server, in response to the VerifiedFans Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.VerifiedLedRing
+Request
+
+Set user selection if LED Ring is working
+
+Request Payload
+
+NameTypeDescriptionVerifiedbooleanTRUE - if working, FALSE - if failed DEFAULT: FALSE
+Response
+
+Sent to the client by server, in response to the VerifiedLedRing Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.VerifiedOrientationSensor
+Request
+
+Set user selection rientations OrientationSensor is working
+
+Request Payload
+
+NameTypeDescriptionVerifiedbooleanTRUE - if working, FALSE - if failed DEFAULT: FALSE
+Response
+
+Sent to the client by server, in response to the VerifiedOrientationSensor Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.VerifiedWiFi
+Request
+
+Set user selection if WiFi is working
+
+Request Payload
+
+NameTypeDescriptionVerifiedbooleanTRUE - if working, FALSE - if failed DEFAULT: FALSE
+Response
+
+Sent to the client by server, in response to the VerifiedWiFi Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Focuser Commands
+
+13 commands
+
+Focuser.AutoFocusAfterGoto Focuser.AutoFocusOnTemperatureChange Focuser.GetFocuserAdvancedSettings Focuser.GetPosition
+Focuser.GetVelocity Focuser.GetPositionLimits Focuser.GetStatus Focuser.HaltCalibration Focuser.IsCalibrationComplete Focuser.IsMoveToOver Focuser.Move Focuser.MoveTo Focuser.RunCalibration
+
+Focuser.AutoFocusAfterGoto
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescriptionValuebooleanEnable/disable auto focusing after each goto DEFAULT: FALSE
+Response
+
+Sent to the client by server, in response to the AutoFocusAfterGoto Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Focuser.AutoFocusOnTemperatureChange
+Request
+
+(No description)
+
+Request Payload
+
+Name	Type	Description
+EnableTemperatureShiftAutoFocus
+booleanEnable/disable temperature shift auto focus
+TemperatureThresholdC
+double?Set threshold temperature for temperature shift auto focus
+Response
+
+Sent to the client by server, in response to the AutoFocusOnTemperatureChange Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Focuser.GetFocuserAdvancedSettings
+Response
+
+Sent to the client by server, in response to the GetFocuserAdvancedSettings Command
+
+Response Payload
+
+
+NameTypeDescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+AutoFocusAfterGotoIsEnabled
+booleanIf autofocusing after each goto is enabled
+TemperatureShiftAutoFocusIsEnabled
+booleanIf temperature shift autofocs is enabled
+
+ThresholdTemperatureC
+
+doubleThreshold temperature value set by the user or default 5 degrees for temperature shift autofocus
+Focuser.GetPosition
+Response
+
+Sent to the client by server, in response to the GetPosition Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Value
+integerCurrent position of the focuser, where 1000 counts is a full rotation of the focus motor.
+Focuser.GetVelocity
+Response
+
+Sent to the client by server, in response to the GetVelocity Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+ValuedoubleCurrent velocity of the focuser in counts per second
+Focuser.GetPositionLimits
+Response
+
+Sent to the client by server, in response to the GetPositionLimits Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?MinintegerMinimum position of the focuserMaxintegerMaximum position of the focuser
+Focuser.GetStatus
+Request
+
+Returns the current state/status of the focuser in its entirety
+
+Response
+
+Sent to the client by server, in response to the GetStatus Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+IsCalibrationComplete
+booleanTRUE if no calibration routine is currently runningIsMoveToOverbooleanTRUE if not MoveTo is in action
+
+
+PercentageCalibrationComplete
+
+
+integerValue 0 - 100%, where 0% means just started, 100% means complete, and anything in between is how close it is to
+completion
+
+Position
+
+integerCurrent position of the focuser, where 0 is the minimum position and each 1000 count is a full rotation
+Velocity
+doubleCurrent velocity of the focuser in counts per second
+Focuser.HaltCalibration
+Request
+
+Stops the focuser's calibration routine (if in progress)
+
+Response
+
+Sent to the client by server, in response to the HaltCalibration Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Focuser.IsCalibrationComplete
+Request
+
+Determines if a requested calibration is complete
+
+Response
+
+Sent to the client by server, in response to the IsCalibrationComplete Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?Value 0 - 100%, where 0% means just
+PercentageCompleteintegerstarted, 100% means complete, and anything in between is how close it is to completion
+Value
+booleanTRUE if no calibration routine is currently running
+Focuser.IsMoveToOver
+Request
+
+Determines if a MoveTo operation is complete
+
+Response
+
+Sent to the client by server, in response to the IsMoveToOver Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?ValuebooleanTRUE if not MoveTo is in action
+Focuser.Move
+Request
+
+Manually move the focuser in or out (note: completion will potentially be on the opposite side of backlash)
+Request Payload
+
+NameTypeDescription
+Value
+integerValue -3 to 3 at which the focuser should move, + being in, and - being out
+Response
+
+Sent to the client by server, in response to the Move Command
+
+Response Payload
+
+
+NameTypeDescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Focuser.MoveTo
+Request
+
+Sends the focuser to the specific position, IsMoveOver returns false until the action is completed
+Request Payload
+
+NameTypeDescription
+Value
+integerEncoder value for the focuser motor to move to. The min/max values are specific to the OTA and are determined during the calibration step at the factory.
+Response
+
+Sent to the client by server, in response to the MoveTo Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Focuser.RunCalibration
+Request
+
+Starts the focuser's calibration routine, If called while calibration is active, the process will restart
+Response
+
+Sent to the client by server, in response to the RunCalibration Command
+
+Response Payload
+
+
+NameTypeDescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+HostController Commands
+
+5 commands
+
+HostController.GetDeviceIsHost HostController.GetPin HostController.ResetPin HostController.SetDeviceIsHost HostController.SetPin
+
+HostController.GetDeviceIsHost
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescriptionDeviceUUIDstringCheck if this device is in the host list
+Response
+
+Sent to the client by server, in response to the GetDeviceIsHost Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?IsHostbooleanReturns TRUE if device found in the host list
+HostController.GetPin
+
+Response
+
+Sent to the client by server, in response to the GetPin Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?PinstringAllow users to retrieve pin. Null if not present.
+HostController.ResetPin
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescription
+DeleteHostList
+boolean?Ask user if they want to delete all the hosts that were added previously
+DeviceUUID
+string?Add this device as a host if they decide to delete all the hostsOldPinstringUsers will need old pin to reset the pinPinstringNew pin
+Response
+
+Sent to the client by server, in response to the ResetPin Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+HostController.SetDeviceIsHost
+
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescription
+
+DeviceUUID
+
+stringDevice UUID to be added to the host list. Must be unique to every device and should remain constant over the lifetime of the device. MAC addresses would be a good candidate when they are available.PinstringRequires pin to add a new host
+Response
+
+Sent to the client by server, in response to the SetDeviceIsHost Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+HostController.SetPin
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescriptionDeviceUUIDstring?Add device as a host while setting up a new pinPinstringSet the user pin
+Response
+
+Sent to the client by server, in response to the SetPin Command
+
+Response Payload
+
+
+NameTypeDescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+ImageServer Commands
+
+6 commands
+
+ImageServer.GetAvailableStackedMasters ImageServer.GetFinalStackedMaster ImageServer.GetListOfAvailableDirectories ImageServer.GetStackedMasterFromDirectory ImageServer.DeleteAllImageDirectories ImageServer.DeleteImageDirectory
+
+ImageServer.GetAvailableStackedMasters
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescriptionUuidListarrayList of UUIDs to query
+Response
+
+Sent to the client by server, in response to the GetAvailableStackedMasters Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?AvailableStackedMastersWill be HashMap UUID:FileLocation
+ImageServer.GetFinalStackedMaster
+
+Request
+
+Requests that a final stacked master from an imaging list be broadcast to all client devices. If the final stacked master exists on the unit, a NewImageReady notification will be sent with the image metadata and download link.
+Request Payload
+
+NameTypeDescriptionImageUuidstringUUID for the image itself
+Response
+
+Sent to the client by server, in response to the GetFinalStackedMaster Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?FileExistsbooleanRequested final stacked master exists on the device
+ImageServer.GetListOfAvailableDirectories
+Response
+
+Sent to the client by server, in response to the GetListOfAvailableDirectories Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?DirectoryListarrayList of directories available on the list
+ImageServer.GetStackedMasterFromDirectory
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescriptionDirectoryNamestringName of the directory to get the final stacked master from
+Response
+
+Sent to the client by server, in response to the GetStackedMasterFromDirectory Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?FileExistsbooleanRequested final stacked master exists on the device
+ImageServer.DeleteAllImageDirectories
+Request
+
+Will delete all image directories present on the scope
+
+Response
+
+Sent to the client by server, in response to the DeleteAllImageDirectories Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+ImageServer.DeleteImageDirectory
+Request
+
+Deletes an image directory. The deletion may take 100ms or more, and therefore may not
+immediately be removed in the	response.
+
+Request Payload
+
+
+NameTypeDescriptionDirectoryNamestringName of the directory to be deleted
+Response
+
+Sent to the client by server, in response to the DeleteImageDirectory Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+LedRing Commands
+
+2 commands
+
+LedRing.GetBrightnessLevel LedRing.SetBrightnessLevel
+
+LedRing.GetBrightnessLevel
+Response
+
+Sent to the client by server, in response to the GetBrightnessLevel Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?BrightnessLeveldoubleGet led brightness level 0 to 1
+LedRing.SetBrightnessLevel
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescriptionBrightnessLeveldoubleSet led brightness level 0 to 1
+Response
+
+Sent to the client by server, in response to the SetBrightnessLevel Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+LiveStream Commands
+
+5 commands
+
+LiveStream.GetDisableLiveStream LiveStream.GetEnableManual LiveStream.SetDisableLiveStream LiveStream.SetEnableAuto LiveStream.SetEnableManual
+
+LiveStream.GetDisableLiveStream
+Request
+
+Gets whether the live stream is disabled.
+
+Response
+
+Responds with the	field.
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?IsDisabledbooleanSet to true if the live stream is disabled.
+LiveStream.GetEnableManual
+Request
+
+Gets whether the live stream is set to manual.
+
+Response
+
+Responds with the	field.
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?IsManualbooleanSet to true if the live stream is manual, false if auto.
+LiveStream.SetDisableLiveStream
+Request
+
+Enables or disables the live stream.
+
+Request Payload
+
+NameTypeDescriptionDisablebooleanSet to true to disable the live stream, false to enable.
+Response
+
+Responds with	set to 0 on success.
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+LiveStream.SetEnableAuto
+Request
+
+Enable auto camera settings for the live stream.
+
+Response
+
+Responds with	set to 0 on success.
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+LiveStream.SetEnableManual
+Request
+
+Enable manual camera settings for the live stream.
+
+Response
+
+Responds with	set to 0 on success.
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Mount Commands
+
+14 commands
+
+Mount.AddAlignRef Mount.DeleteAllAlignRefs Mount.EnableTracking Mount.GetMountConfig Mount.GetPosition Mount.GetStatus Mount.GotoAltAzm Mount.GotoEnc
+
+Mount.GotoRaDec Mount.IsAligned Mount.IsGotoOver Mount.IsTracking Mount.SetMountConfig Mount.Slew
+
+Mount.AddAlignRef
+Request
+
+Adds a new alignment reference to the internal mount model at the mount's current position. The mount will use its current encoder positions, date/time when the command was received, and current latitude/longitude to convert the RA/Dec to local azimuth/altitude; then add the alignment reference point, and recompute its internal encoder <-> celestial transformation.
+Request Payload
+
+NameTypeDescriptionDecdoubleDeclination (J2000) in radians where the mount is currently pointing.
+Ra
+doubleRight Ascension (J2000) in radians where the mount is currently pointing.
+Response
+
+Sent to the client by server, in response to the AddAlignRef Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Mount.DeleteAllAlignRefs
+Request
+
+Deletes all alignment references previously added, and returns the internal mount model to an uninitialized/unknown state.
+
+Response
+
+Sent to the client by server, in response to the DeleteAllAlignRefs Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Mount.EnableTracking
+Request
+
+Starts or stops sidereal tracking, and optionally specifies precise movement in altitude/azimuth instead of sidereal tracking. Mount must be aligned before sidereal tracking will work.
+Request Payload
+
+Name	Type	Description
+RateAlt
+double?Altitude motor tracking rate (radians/second). If both RateAlt and RateAzm are present, mount will move at specified rates instead of sideral tracking.
+RateAzm
+double?Azimuth motor tracking rate (radians/second). If both rates present, mount will move at specified rates instead of sideral tracking.
+Value
+booleanIf true, starts sidereal tracking. If false, stops sidereal tracking. Note if both RateAlt and RateAzm are present, mount will stop sidereal tracking.
+Response
+
+Sent to the client by server, in response to the EnableTracking Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+
+
+Mount.GetMountConfig
+Response
+
+Sent to the client by server, in response to the GetMountConfig Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?AltBacklashintegerAzmBacklashintegerCustomRate9doubleHasBatterybooleanIsAltAzmbooleanIsCustomRate9EnabledbooleanIsPecEnabledbooleanMaxCustomRate9doubleNamestringSupportsPecboolean
+Mount.GetPosition
+Request
+
+Returns the current position of the mount
+
+Response
+
+Sent to the client by server, in response to the GetPosition Command
+
+Response Payload
+
+NameTypeDescription
+ErrorCodeErrorCodeEnum?ErrorMessagestring?
+Alt
+double?Altitude above local horizon in radians. Only present if mount is aligned
+Azm
+double?Azimuth above local horizon in radians. Only present if mount is aligned
+Dec
+double?Declination (J2000) in radians. Only present if mount is alignedEnc0doubleAzimuth/RA encoder position in radians.Enc1doubleAltitude/Dec encoder position in radians.
+Ra
+double?Right Ascension (J2000) in radians. Only present if mount is aligned
+Mount.GetStatus
+Response
+
+Response to a command, or notification sent to the client by the server
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Alt
+double?Altitude above local horizon in radians. Only present if mount is aligned
+Azm
+double?Azimuth above local horizon in radians. Only present if mount is aligned
+BatteryLevel
+enum?Only present if mount has battery. (One of: LOW, MED, HIGH, CRITICALLY_LOW)
+BatteryCurrent
+double?Only present if mount has battery, current draw level in amps. Not all mounts provide this.
+BatteryVoltage
+double?Only present if mount has battery, voltage level in volts
+ChargerStatusenum?Only present if mount has battery. (One of: DISCHARGING, CHARGING, CHARGED, FAULT)
+Date
+string?Date in system time zone, formatted as DD MM YYYY; all values are numeric
+Dec
+double?Declination (J2000) in radians. Only present if mount is alignedEnc0doubleAzimuth/RA encoder position in radians.Enc1doubleAltitude/Dec encoder position in radians.IsAlignedbooleanWhether or not mount has been star-aligned.IsGotoOverbooleanWhether or not a GoTo operation is in progress.IsTrackingbooleanWhether or not a sidereal tracking is in progress.
+Latitude
+double?latitude in radians, north positive, if location is known
+Longitude
+double?longitude in radians, east positive, if location is known
+NumRefs
+integer?number of points (stars) currently used in mount alignment model.
+Ra
+double?Right Ascension (J2000) in radians. Only present if mount is aligned
+Time
+string?System clock time in local time zone, formatted as HH:MM:SS using a 24-hour clock
+TimeZone
+string?System time zone IANA identifier like America/Los_Angeles, or Europe/Berlin
+Mount.GotoAltAzm
+Request
+
+Sends the mount to the specified Alt/Azm coordinate
+
+Request Payload
+
+NameTypeDescriptionAltdoubleAltitude coordinate in radians
+AzmdoubleAzimuth value in radians
+Response
+
+Sent to the client by server, in response to the GotoAltAzm Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Mount.GotoEnc
+Request
+
+Sends the mount to the specified mount encoder coordinates
+
+Request Payload
+
+Name	Type	DescriptionEnc0doubleEncoder coordinates of the axis fixed to the mount in radiansEnc1doubleEncoder coordinates of the axis fixed to the Enc0 axis in radians
+Response
+
+Sent to the client by server, in response to the GotoEnc Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Mount.GotoRaDec
+Request
+
+Sends the mount to the specified Ra/Dec coordinate
+
+Request Payload
+
+Name	Type	DescriptionDecdoubleDeclination J2000 coordinate in radiansRadoubleRight ascension J2000 coordinate in radians
+Response
+
+Sent to the client by server, in response to the GotoRaDec Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Mount.IsAligned
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescriptionNumRefsintegerNumber of alignment references in the mount modelValuebooleanTRUE if the mount is aligned
+Response
+
+Sent to the client by server, in response to the IsAligned Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Mount.IsGotoOver
+Request
+
+Determine the status of a goto
+
+Response
+
+Sent to the client by server, in response to the IsGotoOver Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?ValuebooleanTRUE if there is no active goto in progress
+Mount.IsTracking
+Request
+
+Determine whether sidereal tracking is started or stopped.
+
+Response
+
+Sent to the client by server, in response to the IsTracking Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Value
+booleanTRUE if the mount is currently tracking sidereal motion. Mount must be aligned to do this.
+Mount.SetMountConfig
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescription
+AltBacklashinteger?AzmBacklashinteger?CustomRate9Speeddouble?in radians/secondEnableCustomRate9boolean?EnablePecboolean?
+Response
+
+Sent to the client by server, in response to the SetMountConfig Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Mount.Slew
+Request
+
+Slews the mount at the specified rate
+
+Request Payload
+
+Name	Type	DescriptionAltRateinteger?Rate for the secondary axis of the mount (0 - 9)AzmRateinteger?Rate for the primary axis of the mount (0 - 9)
+Response
+
+Sent to the client by server, in response to the Slew Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Network Commands
+
+16 commands
+
+Network.5GHzAccessPoint Network.AddWiFiNetwork Network.ConnectToSpecificNetwork Network.DeleteWiFiNetwork Network.ForceDirectConnect Network.Get5GHzAccessPoint Network.GetDirectConnectPassword Network.GetForceDirectConnect Network.GetVisibleWiFi Network.GetWiFiNetworks Network.HasInternetConnection Network.ReconnectDirectConnect Network.ReconnectWiFi Network.RemoveAllKnownNetworks Network.SetDirectConnectPassword Network.SetRegulatoryDomain
+
+Network.5GHzAccessPoint
+Request
+
+Set to TRUE for the direct connect access point to be created as a 5GHz connection. If direct connect mode is currently active, toggling this setting will cause the connection to be reset.
+Request Payload
+
+NameTypeDescriptionValueboolean
+Response
+
+Sent to the client by server, in response to the 5GHzAccessPoint Command
+
+Response Payload
+
+
+ErrorCodeErrorCodeEnum?ErrorMessagestring?
+Network.AddWiFiNetwork
+Request
+
+Adds a new network to the list of connectable networks
+
+Request Payload
+
+NameTypeDescription
+Password
+string?Password of the new network, leave blank if there is no new networkSsidstringSSID of the new network
+Response
+
+Sent to the client by server, in response to the AddWiFiNetwork Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Network.ConnectToSpecificNetwork
+Request
+
+Try to connect to a specific network. This will fail if the SSID provided has not been configured, or if it is not currently visible to Origin. Here are the steps taken: 1. If the requested SSID is not known, the error WIFI_SPECIFIED_NETWORK_NOT_CONFIGURED is sent in a separate notification and no action is taken. 2. If the requested SSID is known but not currently visibile, the error WIFI_SPECIFIED_NETWORK_NOT_VISIBLE is sent in a separate notification and no action is taken. 3. If the requested SSID is known and currently connected, no action is taken. 4. Otherwise, the ReconnectWifi command is executed but the only SSID which is allowed to be connected to is the requested SSID.
+Request Payload
+
+
+NameTypeDescriptionSsidstringSSID of the network you want to try to connect to.
+Response
+
+Sent to the client by server, in response to the ConnectToSpecificNetwork Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Network.DeleteWiFiNetwork
+Request
+
+Deletes the specified network from the list of networks
+
+Request Payload
+
+NameTypeDescriptionSsidstringName of network to delete
+Response
+
+Sent to the client by server, in response to the DeleteWiFiNetwork Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Network.ForceDirectConnect
+Request
+
+Sets the value of a flag which will force the OTA to use direct connect mode when set to true. If receiving false when already false, or true when already true, do nothing. If receiving false
+
+when true, set the flag to false and do nothing else. If receiving true when false, set the flag to true and reset the wifi connection. This will tear down the WLAN connection and create an ad- hoc network.
+Request Payload
+
+NameTypeDescription
+Value
+boolean?TRUE if the user desires to not have SmartScope attempt to connect to their WLAN DEFAULT: FALSE
+Response
+
+Sent to the client by server, in response to the ForceDirectConnect Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Network.Get5GHzAccessPoint
+Request
+
+Gets the status of the access point.
+
+Response
+
+Sent to the client by server, in response to the Get5GHzAccessPoint Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+5GHzRequested
+booleanIf the user requested 5GHz mode (defaults to true).
+5GHzAllowed
+booleanIf 5GHz mode is allowed in this country (regulatory domain).
+5GHzActivebooleanIf direct connect mode is currently active and in 5GHz mode.
+DirectConnectModeActive
+booleanIf direct connect mode is currently active.
+Network.GetDirectConnectPassword
+Request
+
+Gets the password of the direct connect access point.
+
+Response
+
+Sent to the client by server, in response to the GetDirectConnectPassword Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?PasswordstringThe direct connect password
+Network.GetForceDirectConnect
+Request
+
+Determines if user forced Origin into direct connect mode (Saved on the Pi)
+
+Response
+
+Sent to the client by server, in response to the GetForceDirectConnect Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Value
+booleanDetermines if user forced Origin into direct connect mode (Saved on the Pi)
+Network.GetVisibleWiFi
+Request
+
+Returns a list of Network objects. Each Network is a Map<String, Object> = { {'SSID',String},
+{'IsVisible',Boolean}, {'HasConfiguredPassword',Boolean }, {'HasIncorrectPassword',Boolean },
+{'IsConnected',Boolean}, {'SignalStrength',Integer}, } SignalStrength is either 0 for networks that are not visible, or a negative number for visible networks. Numbers closer to zero are better.
+Response
+
+Sent to the client by server, in response to the GetVisibleWiFi Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Networks
+array<VisibleNetworkDescriptor>List of all Networks which are visible and/or previously configured with a password.
+Network.GetWiFiNetworks
+Request
+
+Gets a list networks whose SSID and password have been previously configured by user
+
+Response
+
+Sent to the client by server, in response to the GetWiFiNetworks Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+
+Ssids
+
+array<EnabledNetworkDescriptor>List of all enabled Network SSIDs. Network SSIDs are given in json format, with the fields SSID (string)
+and WrongPassword (boolean).
+Network.HasInternetConnection
+Request
+
+Determines if SmartScope has internet access
+
+Response
+
+Sent to the client by server, in response to the HasInternetConnection Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?Valueboolean
+Network.ReconnectDirectConnect
+Request
+
+Restart direct connect mode without setting the 'forceDirectConnect' flag. This command may be useful after changing the 5GHzAccessMode.
+Response
+
+Sent to the client by server, in response to the ReconnectDirectConnect Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Network.ReconnectWiFi
+Request
+
+This will reset the WiFi connection and re-attempt to either connect to the user's network or
+
+broadcast in direct-connect mode (WARNING: User will lose connection after a call to this function). Here are the steps taken: 1. The UDP broadcast is paused. 2. If the direct connect network has been created, it is torn down. 3. If the WLAN connection is active, it is disconnected. 4. If 'Force Direct Connect' mode is enabled, a new direct connect network is created. 5. Otherwise, the unit will attempt to connect to any known, visible SSIDs. 6. If no known, visible SSIDs are successfully able to be connected to, a new direct connect network is created.
+Response
+
+Sent to the client by server, in response to the ReconnectWiFi Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Network.RemoveAllKnownNetworks
+Request
+
+Clear all saved wifi passwords.
+
+Response
+
+Sent to the client by server, in response to the RemoveAllKnownNetworks Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Network.SetDirectConnectPassword
+Request
+
+Set the password for direct connect. If the 'Password' field is not provided, or if it is an empty string, the default direct connect password is used. The password must be between 8-63 characters and have no special characters (otherwise an WIFI_INVALID_PASSWORD_LENGTH error is returned). If the device is currently in WLAN mode, the new password will take affect
+
+the next time Direct Connect mode is started. If the device is currently in Direct Connect mode, the access point is restarted immediately with the new password.
+Request Payload
+
+NameTypeDescription
+Password
+string?A password between 8-63 characters with no special characters (ASCII letters and numbers only).
+Response
+
+Sent to the client by server, in response to the SetDirectConnectPassword Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Network.SetRegulatoryDomain
+Request
+
+Set the regulatory domain for the wifi module. This takes immediate effect and persists after shutdown. Use two letter country code, i.e. 'US'. Full list of supported codes: https://git.kernel.org/pub/scm/linux/kernel/git/sforshee/wireless-regdb.git/tree/db.txt
+Request Payload
+
+NameTypeDescriptionCountryCodestring
+Force
+boolean?If true, forces the new CountryCode, overriding any country code set with a USB key. Default is false.
+Response
+
+Sent to the client by server, in response to the SetRegulatoryDomain Command
+
+Response Payload
+
+
+ErrorCodeErrorCodeEnum?ErrorMessagestring?
+OrientationSensor  Commands
+
+3 commands
+
+OrientationSensor.GetAccelerometer OrientationSensor.GetStatus OrientationSensor.ZeroCalibrate
+
+OrientationSensor.GetAccelerometer
+Response
+
+Get a reading from the accelerometer (response)
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?xinteger?yinteger?zinteger?
+OrientationSensor.GetStatus
+Response
+
+Sent to the client by server, in response to the GetStatus Command, or as a Notification
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+AltitudeintegerAltitude angle of the OTA in degreesAccelerationXdouble?Acceleration vector X-axis component in milli-GAccelerationYdouble?Acceleration vector Y-axis component in milli-GAccelerationZdouble?Acceleration vector Z-axis component in milli-G
+OrientationSensor.ZeroCalibrate
+Request
+
+Runs Zero level calibration
+
+Response
+
+Sent to the client by server, in response to the ZeroCalibrate Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+System Commands
+
+13 commands
+
+System.EnableCustomerMode System.GetAutomaticUpdates System.GetLogs System.GetModel System.GetUpdateChannel System.GetVersion System.HasUpdateAvailable System.Reboot System.RunFactoryReset System.SetAutomaticUpdates System.SetUpdateChannel System.ShutDownCore
+
+System.Update
+
+System.EnableCustomerMode
+Request
+
+Enables customer mode, which disables the dev and QA apps. This command can only be reversed with a USB key.
+Response
+
+Sent to the client by server, in response to the EnableCustomerMode Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+System.GetAutomaticUpdates
+Request
+
+Determines whether Origin will automatically check for, download, and install system softwrae updates at startup.
+Response
+
+Sent to the client by server, in response to the GetAutomaticUpdates Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+
+Enabled
+
+booleanIf true, updates will be automatically and silently checked for, downloaded, and installed when Origin boots up. If false, updates will only be installed manually, when the System.Update command is called.
+System.GetLogs
+Request
+
+Request a zip file with all recent logs in it. This will be sent in a follow-up notification called 'System.LogsReady'.
+Response
+
+Sent to the client by server, in response to the GetLogs Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+System.GetModel
+Request
+
+Returns the name of this SmartScope model
+
+Response
+
+Sent to the client by server, in response to the GetModel Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?DevicesarrayAll 'devices' supported by this modelValuestringThe model name
+System.GetUpdateChannel
+Request
+
+Gets the current software update channel. Returns an empty string for the default release channel.
+
+Response
+
+Sent to the client by server, in response to the GetUpdateChannel Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Value
+stringThe current update channel, or an empty string for the default release channel.
+System.GetVersion
+Request
+
+Gets system version information.
+
+Response
+
+Sent to the client by server, in response to the GetVersion Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?NumberstringThe semantic version string, like "1.0.0".VersionstringThe long version string.
+System.HasUpdateAvailable
+Request
+
+Determines if there is a software update available.
+
+Request Payload
+
+NameTypeDescriptionForceCheckboolean?Optional parameter to force an update check.
+
+
+Response
+
+Sent to the client by server, in response to the HasUpdateAvailable Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+IsAvailableOnline
+booleanThis flag is set if there is an update available though it might still be in the process of downloading.
+IsReadyForUpdate
+booleanThis flag is set when the update has been downloaded and is ready to install.
+Deprecated; will be removed shortly.
+UpdateCheckStatus
+enumThe status of the previous update check. (One of: IDLE, IN_PROGRESS, SUCCESS, FAILURE_NETWORK, FAILURE_RESPONSE)
+System.Reboot
+Request
+
+WARNING! This will immediately reboot the SmartScope and cause all connected ports to disconnect
+Response
+
+Sent to the client by server, in response to the Reboot Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+System.RunFactoryReset
+
+Request
+
+Resets the unit to factory settings and reboots. Optionally, settings can be reset and developer mode can be disabled.
+Request Payload
+
+NameTypeDescriptionDevboolean?Set to true to disable developer mode. Default is false.
+Settings
+boolean?Set to true to reset settings, including WiFi settings. Default is false.
+Response
+
+Sent to the client by server, in response to the RunFactoryReset Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+System.SetAutomaticUpdates
+Request
+
+Sets whether Origin should automatically checked for, download, and install system software updates at startup.
+Request Payload
+
+NameTypeDescription
+Enabled
+booleantrue if Origin should automatically check for, download, and install updates at startup. false if updates should only be installed by the System.Update command.
+Response
+
+Sent to the client by server, in response to the SetAutomaticUpdates Command
+
+Response Payload
+
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+System.SetUpdateChannel
+Request
+
+Sets the update channel.
+
+Request Payload
+
+NameTypeDescription
+
+Value
+
+stringThe new update channel. Use an empty string to set to the default release channel. After sending this command, an update is immediately checked. Use the `HasUpdateAvailable` command to check the status of the new update check.
+Response
+
+Sent to the client by server, in response to the SetUpdateChannel Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+System.ShutDownCore
+Request
+
+Turns off the core application
+
+Response
+
+Sent to the client by server, in response to the ShutDownCore Command
+
+Response Payload
+
+
+ErrorCodeErrorCodeEnum?ErrorMessagestring?
+System.Update
+Request
+
+Downloads and installs Origin system software update, and reboots if update installed succeefully. This process may take several minutes. During this time System.UpdateStatus notifications will be sent approx 1x per second for client applications to monitor progress. This command will return an error response if called while another System.Update is already in progress. WARNING! rebooting will cause all connected clients to disconnect!
+Request Payload
+
+NameTypeDescription
+SourceUrl
+string?Optional paramter indicating URL of update file to download. If omitted, Origin will use latest publicly available system software update from celestron.com.
+Reboot
+boolean?Optional parameter indicating if Origin should reboot after update is installed. If omitted, Origin will reboot (i.e. default is true).
+Response
+
+Sent to the client by server, in response to the Update Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+TaskController Commands
+
+20 commands
+
+TaskController.CancelImaging TaskController.CopyAllDirectoriesToFlashDrive
+
+TaskController.CopyDirectoryToFlashDrive TaskController.GetObservingListInfo TaskController.GetStatus TaskController.HaltTasks TaskController.ImageNextTarget TaskController.RunTerrestrialAutoFocus TaskController.RestoreDarksToFactory TaskController.RestoreFlatsToFactory TaskController.RunAddReference TaskController.RunCenterTarget TaskController.RunGenerateNewDarks TaskController.RunGenerateNewFlat TaskController.RunImaging TaskController.RunInfinityAutoFocus TaskController.RunInitialize TaskController.RunObservingList TaskController.RunSampleCapture TaskController.RunTemperatureShiftAutoFocus
+
+TaskController.CancelImaging
+Request
+
+If imaging is running, it will cancel that imaging session and will not send any new image ready notifications
+Response
+
+Sent to the client by server, in response to the CancelImaging Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+TaskController.CopyAllDirectoriesToFlashDrive
+Request
+
+Will COPY all image directories present on the scope to the flash drive in Astrophotography.zip
+
+Response
+
+Sent to the client by server, in response to the CopyAllDirectoriesToFlashDrive Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+TaskController.CopyDirectoryToFlashDrive
+Request
+
+(No description)
+
+Request Payload
+
+NameTypeDescription
+DirectoryName
+stringName of the directory to be COPIED on the flash drive and will be saved as directoryname.zip
+Response
+
+Sent to the client by server, in response to the CopyDirectoryToFlashDrive Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+TaskController.GetObservingListInfo
+Request
+
+Request for imaging list info. This will provide details of specific old imaging list and status of each individual object in the list.
+Request Payload
+
+NameTypeDescriptionListUuidstringUUID for the observing list that this object was captured as part of
+Response
+
+Sent to the client by server, in response to the GetObservingListInfo Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+ImagingInfo
+ImagingInfoTypeDescribes status of an imaging operation, either in progress, or previously completed/failed.
+TaskController.GetStatus
+Response
+
+Response to a command, or notification sent to the client by the server
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?AlignmentInfoAlignmentInfoType?Describes status for an alignment task.
+CenteringInfo
+CenteringInfoType?Describes status for a centering, i.e. Precise GoTo, task.DarkGenerationInfoDarkGenerationInfoType?
+ImagingInfo
+ImagingInfoType?Describes status of an imaging operation, either in progress, or previously completed/failed.
+InitializationInfo
+InitializationInfoType?Describes status for the initialization task.
+IsReadybooleanTRUE if SmartScope has been successfully initialized
+
+IsFakeInitialized
+
+boolean?TRUE if initialization is faked for indoor testing/demo purposes. FALSE if initialization is real. Omitted if IsReady is FALSE (i.e. if scope is not initialized at all). See TaskController.RunInitialize.
+Stage
+enumDefines what type of event occurred. (One of: STARTED, IN_PROGRESS, COMPLETE, STOPPED)
+
+
+
+State
+
+
+
+enumDefines what type of task the task info block is defining. (One of: UNKNOWN, IDLE, IMAGING_OBJECT, IMAGING_LIST, CENTERING_TARGET, SAMPLE_CAPTURE, INITIALIZING, ALIGNING, FOCUSING, GENERATING_DARKS, GENERATING_FLATS, DOWNLOADING_UPDATE)
+TaskController.HaltTasks
+Request
+
+Will halt an active process (imaging, streaming, focusing, aligning, etc), and return SmartScope to an idle state
+Response
+
+Sent to the client by server, in response to the HaltTasks Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+TaskController.ImageNextTarget
+Request
+
+If running an observing list, it will jump to the next target
+
+Request Payload
+
+NameTypeDescription
+SkipWaiting
+booleanSkip waiting for the next object till minimum start time. A popup window will ask user if they would like to wait. DEFAULT: TRUE
+Response
+
+Sent to the client by server, in response to the ImageNextTarget Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+TaskController.RunTerrestrialAutoFocus
+Request
+
+Runs an autofocus routine optimized for terrestrial viewing
+
+Request Payload
+
+Name	Type	Description
+Range
+integer?Range the auto focus should run (1000 count per 360 rotation of focuser knob). Default: 8000
+StartingPosition
+integer?Specified position to focus around. Default: Current position
+StepSize
+integer?Size of each step to be taken during autofocus. Default: 300
+Response
+
+Sent to the client by the server in response to the RunTerrestrialAutoFocus Command
+
+Response Payload
+
+
+ErrorCodeErrorCodeEnum?ErrorMessagestring?
+TaskController.RestoreDarksToFactory
+Request
+
+Delete all user generated darks and replace them with factory darks. Upon completion, the
+notification is sent.
+
+Response
+
+Delete all user generated darks and replace them with the factory darks. (Response)
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+TaskController.RestoreFlatsToFactory
+Request
+
+Delete all user generated flats and replace them with factory flats. Upon completion, the
+notification is sent.
+
+Response
+
+Delete all user generated flats and replace them with factory flats. (Response)
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+TaskController.RunAddReference
+Request
+
+Add alignment reference here at current position. Will capture and solve plate.
+
+Response
+
+Sent to the client by server, in response to the RunAddReference Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+TaskController.RunCenterTarget
+Request
+
+Uses plate-solving to precisely center a target in the FOV of the camera
+
+Request Payload
+
+NameTypeDescription
+OffsetX
+double?X coordinate of current image to recenter the mount on, expressed as a fraction of image width from 0 (left) to 1 (right)
+OffsetY
+double?Y coordinate of current image to center the mount on, expressed as a fraction of image height from 0 (top) to 1 (bottom)
+Response
+
+Sent to the client by server, in response to the RunCenterTarget Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+TaskController.RunGenerateNewDarks
+Request
+
+(No description)
+
+Request Payload
+
+Name	Type	DescriptionBitDepthinteger?Use this particular bit depth, defaults to 16ExposureTimedouble?Use this particular exposure time [seconds]
+
+ISO
+
+ISOValueEnum?Allowed values for camera's light sensitivity, i.e. gain, from least to most light-sensitive. ISO 100 roughly corresponds to gain 10 dB, ISO 200 to 20 dB, and ISO 2000 to 40 dB. Treat these values with caution.
+Response
+
+Sent to the client by server, in response to the RunGenerateNewDarks Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+TaskController.RunGenerateNewFlat
+Request
+
+Will generate a new flat field image
+
+Response
+
+Sent to the client by server, in response to the RunGenerateNewFlat Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+TaskController.RunImaging
+Request
+
+Runs image stacking operation on a single target object (as opposed to RunObservingList, which performs stacked imaging on multiple targets.)
+Request Payload
+
+Name	Type	Description
+Dec
+double?declination coordinate to slew to before imaging, J2000, radians. If absent image at the current location DEFAULT: current location
+
+
+ExposureTime
+
+
+double?Use this particular exposure time in seconds for individual raw frames to be stacked together. As opposed to TotalDuration, which is the total desired duration for all frames in the stack, so number of frames in stack = TotalDuration / ExposureTime.
+
+ISO
+
+ISOValueEnum?Allowed values for camera's light sensitivity, i.e. gain, from least to most light-sensitive. ISO 100 roughly corresponds to gain 10 dB, ISO 200 to 20 dB, and ISO 2000 to 40 dB. Treat these values with caution.
+MinimumStartTime
+string?Minimum time before imaging should begin, Format: DD MM YYYY hh:mm:ss where hh is a 24hr clock
+
+
+Name
+
+
+string?Name of target to be imaged. If not present, name will be constructed from target RA/Dec coordinates. Name of directory where images will be saved on the raspberry pi's SD card are constructed from this name, and the imaging start time.ObjectMagnitudedouble?Visual magnitude of the target object.ObjectSizedouble?Apparent size of the target object in radians.
+Ra
+double?Right ascension coordinate to slew to before imaging, J2000, in radians. if not present then imaging will begin at the current location.
+SaveRawImage
+boolean?If TRUE, all raw images will be saved locally. False by default.
+
+TotalDuration
+double?Total duration in seconds to image before halting. If not present then imaging run until a CancelImaging or HaltTasks command is sent, until imaging fails, or until 12 hours have elapsed.UuidstringUnique ID for this imaging target.
+Response
+
+Sent to the client by server, in response to the RunImaging Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+TaskController.RunInfinityAutoFocus
+Request
+
+Runs an auto-focus
+
+Request Payload
+
+Name	Type	Description
+Range
+integer?Range the auto focus should run (1000 count per 360 rotation of focuser knob) DEFAULT: TBD
+StartingPosition
+integer?Specified position to focus around DEFAULT: current location
+UseFineFocus
+boolean?Determine if rough or fine focus should be used DEFAULT: TRUE
+Response
+
+Sent to the client by server, in response to the RunInfinityAutoFocus Command
+
+Response Payload
+
+NameTypeDescriptionErrorCodeErrorCodeEnum?
+ErrorMessagestring?
+TaskController.RunInitialize
+Request
+
+Runs the complete SmartScope initialization routine
+
+Request Payload
+
+NameTypeDescription
+Date
+stringDate in local time zone, formatted as DD MM YYYY; all values are numericLatitudedoubleLocation's latitude in radians; north positive, south negativeLongitudedoubleLocation's longitude in radians; east positive, west negative
+Time
+stringTime in local time zone, formatted as HH:MM:SS using a 24- hour clock
+TimeZone
+stringLocal time zone IANA identifier like America/Los_Angeles, or Europe/Berlin
+FakeInitialize
+boolean?if true, simulate initialization for indoor/demo testing purposes. If false (or omitted), perform real initialization.
+Response
+
+Sent to the client by server, in response to the RunInitialize Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+TaskController.RunObservingList
+Request
+
+Sends SmartScope off to perform a sequence of imaging on different objects
+
+Request Payload
+
+Name	Type	Description
+AutoFocusAfterSlew
+boolean?If true, scope will run infinity auto focus after each slew; false by default (or if not present).
+Location
+array<LocationType>Each location describes a target object or sky locaiton to image.
+
+PowerDownOnCompletion
+
+boolean?Parks mount, saves settings, and powers down system after all Locations in the list have been imaged (or failed).UuidstringUnique ID for this imaging list.
+Response
+
+Sent to the client by server, in response to the RunObservingList Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+TaskController.RunSampleCapture
+Request
+
+Starts a camera sample capture using the specified ExposureTime and ISO values. If ExposureTime or ISO values are not specified, the current values are used. The response message is sent immediately. Upon completion, the TaskController.GetStatus notification is sent. Upon successful capture, the ImageServer.NewImageReady notification is sent.
+Request Payload
+
+NameTypeDescription
+ExposureTime
+double?Exposure time (seconds) to use for the sample capture. If not provided, the current exposure time is used.
+
+
+ISO
+
+ISOValueEnum?Allowed values for camera's light sensitivity, i.e. gain, from least to most light-sensitive. ISO 100 roughly corresponds to gain 10 dB, ISO 200 to 20 dB, and ISO 2000 to 40 dB. Treat these values with caution.
+Response
+
+Responds with	set to 0 on success.
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+TaskController.RunTemperatureShiftAutoFocus
+Request
+
+After receiving need focus change dure temperature shift notification, user can send command to run auto focus
+Response
+
+Sent to the client by server, in response to the RunTemperatureShiftAutoFocus Command
+
+Response Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Notifications
+
+19 notifications
+
+Camera.GetCaptureParameters DewHeater.GetStatus Disk.GetStatus Disk.LowSpaceWarning
+
+Environment.GetStatus Error.Error
+FactoryCalibrationController.FATImageTransferComplete FactoryCalibrationController.GetStatus FactoryCalibrationController.ImageDownloadLink Focuser.GetStatus
+ImageServer.NewImageReady Mount.GetStatus OrientationSensor.GetStatus System.CriticalError System.LogsReady System.UpdateStatus TaskController.FileTransferStatus TaskController.GetStatus
+TaskController.SafeToRemoveFlashDrive
+
+Camera.GetCaptureParameters
+Sent to the client by server, in response to the GetCaptureParameters Command
+
+Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?BinningintegerBinning, 1 for default, 2 means 2x2, etcBitDepthintegerBit depth, 8 for 8-bit, 16 for 16 -bit, 24 for 24-bit
+ColorBBalance
+doubleBlue color adjustment in percentage (0-100%) where 0% means no Blue, and 100% means full Blue
+ColorGBalance
+doubleGreen color adjustment in percentage (0-100%) where 0% means no Green, and 100% means full Green
+ColorRBalance
+doubleRed color adjustment in percentage (0-100%) where 0% means no Red, and 100% means full Red
+ExposuredoubleLength of exposure in seconds to take during a single image capture
+
+ISO
+
+ISOValueEnumAllowed values for camera's light sensitivity, i.e. gain, from least to most light-sensitive. ISO 100 roughly corresponds to gain 10 dB, ISO 200 to 20 dB, and ISO 2000 to 40 dB. Treat these values with caution.OffsetintegerOffset setting
+DewHeater.GetStatus
+Response to a command, or notification sent to the client by the server
+
+Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?AggressionintegerInteger value between 1 to 10HeaterLeveldoubleCurrent heater level returned between 0 to 1ManualPowerLeveldoubleManual power level returned between 0 to 1ModestringAuto or Manual
+Disk.GetStatus
+Returns the current status of the disk.
+
+Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?Capacityint64Capacity of the SD card, in bytes.FreeBytesint64Number of free bytes on the SD card.LevelenumIndicates the current disk space level. (One of: OK,
+LOW)
+Disk.LowSpaceWarning
+Warning that is triggered when the internal disk usage is too high.
+
+Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?Capacityint64Capacity of the SD card, in bytes.FreeBytesint64Number of free bytes on the SD card
+Environment.GetStatus
+Response to a command, or notification sent to the client by the server
+
+Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?AmbientTemperaturedouble?Ambient temperature in degrees C
+CameraTemperature
+double?Camera internal sensor temperature in degrees C
+CpuFanOn
+boolean?True if CPU fan is turned on, false if CPU fan is off.
+CpuTemperature
+double?Raspberry PI core CPU temperature in degrees C
+DewPoint
+double?Dew point in degrees C, calculated by SmartScope using ambient temperature
+FrontCellTemperature
+double?Surface temperature of the front cell surface in degrees CHumiditydouble?Relative humidity level from 0.0 to 1.0
+
+
+OtaFanOn
+boolean?True if OTA fan is turned on, false if OTA fan is off.
+Recalibrating
+boolean?ON/OFF status of the self heater of the humidity sensor
+Error.Error
+(No description)
+
+Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnumErrorMessagestringError message in English for debugging
+FactoryCalibrationController.FATImageTransferComplete
+(No description)
+
+Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+FactoryCalibrationController.GetStatus
+Response to a command, or notification sent to the client by the server
+
+Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?CollimationInfoCollimationInfoType?
+CompletedPhases
+array<CalibrationPhaseEnum>None or list of strings of phase names
+
+CurrentPhase
+CalibrationPhaseEnumNames the currently running Factory Calibration Phase.DarkGenerationInfoDarkGenerationInfoType?FATestInfoFATestInfoType?FlatGenerationInfoFlatGenerationInfoType?HardwareCalibrationInfoHardwareCalibrationInfoType?
+IsCalibrated
+booleanTRUE if factory calibration is completed
+FactoryCalibrationController.ImageDownloadLink
+Download link for FA test images
+
+Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?DirectoryLocationstringDownload link for FA test images
+Focuser.GetStatus
+Sent to the client by server, in response to the GetStatus Command
+
+Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+IsCalibrationComplete
+booleanTRUE if no calibration routine is currently runningIsMoveToOverbooleanTRUE if not MoveTo is in action
+
+PercentageCalibrationComplete
+
+integerValue 0 - 100%, where 0% means just started, 100% means complete, and anything in
+between is how close it is to completion
+
+Position
+
+integerCurrent position of the focuser, where 0 is the minimum position and each 1000 count is a full rotation
+Velocity
+doubleCurrent velocity of the focuser in counts per second
+ImageServer.NewImageReady
+Notification sent to the client by the server
+
+Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+DateandTime
+string?Deprecated - use "Date" and "Time". Date and time of object started imaging. Sent only when type == FINAL_STACKED_MASTER
+Date
+string?Date in the format "dd MM yyyy". Sent only when type == STACKED_MASTERDecdoubleDeclination of image center, J2000, in radians
+ExposureTime
+double?Total exposure time in seconds. Sent only when type == STACKED_MASTER
+FileLocation
+stringrelative image location (to the raspberry pi web server root) of the new image
+FocusScore
+double?dimensionless image sharpness measurement, larger is sharper, always >= 0FovXdoubleCalculated image width in RadiansFovYdoubleCalculated image height in Radians
+
+ISO
+
+ISOValueEnum?Allowed values for camera's light sensitivity, i.e. gain, from least to most light-sensitive. ISO 100 roughly corresponds to gain 10 dB, ISO 200 to
+20 dB, and ISO 2000 to 40 dB. Treat these values with caution.
+ImageLocation
+string?absolute file path (on the raspberry pi) to the new image
+
+
+ImageType
+
+
+enumThe type of image that has been received. (One of: STACKED_MASTER, FINAL_STACKED_MASTER, SAMPLE_CAPTURE, LIVE, ALIGNMENT, FOCUSING, DARK, BIAS, FLAT, LIGHT, FAT_IMAGE, UNKNOWN)
+ObjectName
+string?Name of the current target (defined by the Name field in the RunImaging command) Sent only when type == FINAL_STACKED_MASTER
+Orientation
+doubleAngle in radians from "up" on the image, through east, to North in the sky. Identical to astrometry.net definition of orientation.
+Ra
+doubleJ2000 Right Ascension of image center, in radians
+StackDepth
+integer?Current stackdepth of the image stacker. Sent only when type == FINAL_STACKED_MASTER
+Uuid
+string?Uuid for the object which this is an image of. This is set by the client application when they create the imaging list.StretchStrengthdouble?Strength of the stretch applied to the imageStretchBackgrounddouble?Background level of the stretched image
+Time
+string?Time in the format "HH:mm:ss". Sent only when type == FINAL_STACKED_MASTER
+Mount.GetStatus
+Response to a command, or notification sent to the client by the server
+
+Payload
+
+NameTypeDescriptionErrorCodeErrorCodeEnum?
+ErrorMessagestring?
+Alt
+double?Altitude above local horizon in radians. Only present if mount is aligned
+Azm
+double?Azimuth above local horizon in radians. Only present if mount is aligned
+BatteryLevel
+enum?Only present if mount has battery. (One of: LOW, MED, HIGH, CRITICALLY_LOW)
+BatteryCurrent
+double?Only present if mount has battery, current draw level in amps. Not all mounts provide this.
+BatteryVoltage
+double?Only present if mount has battery, voltage level in volts
+ChargerStatus
+enum?Only present if mount has battery. (One of: DISCHARGING, CHARGING, CHARGED, FAULT)
+Date
+string?Date in system time zone, formatted as DD MM YYYY; all values are numeric
+Dec
+double?Declination (J2000) in radians. Only present if mount is alignedEnc0doubleAzimuth/RA encoder position in radians.Enc1doubleAltitude/Dec encoder position in radians.IsAlignedbooleanWhether or not mount has been star-aligned.IsGotoOverbooleanWhether or not a GoTo operation is in progress.IsTrackingbooleanWhether or not a sidereal tracking is in progress.
+Latitude
+double?latitude in radians, north positive, if location is known
+Longitude
+double?longitude in radians, east positive, if location is known
+NumRefs
+integer?number of points (stars) currently used in mount alignment model.
+Ra
+double?Right Ascension (J2000) in radians. Only present if mount is alignedSystem clock time in local time zone, formatted as
+Timestring?HH:MM:SS using a 24-hour clock
+TimeZone
+string?System time zone IANA identifier like America/Los_Angeles, or Europe/Berlin
+OrientationSensor.GetStatus
+Sent to the client by server, in response to the GetStatus Command, or as a Notification
+
+Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?AltitudeintegerAltitude angle of the OTA in degreesAccelerationXdouble?Acceleration vector X-axis component in milli-GAccelerationYdouble?Acceleration vector Y-axis component in milli-GAccelerationZdouble?Acceleration vector Z-axis component in milli-G
+System.CriticalError
+If this message is received then something very bad enough has occurred that the user will need to power cycle their unit. Possible a piece of hardware has failed (ex the Camera is not connected)
+Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?CriticalErrorMessagestringMessage associated with the critical error
+System.LogsReady
+Sent after a request for logs made by System.GetLogs has completed
+
+Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?DownloadLinkstringDownload link for logs zip file
+System.UpdateStatus
+Contains update status. Notifications begin after System.Update command is run. Sent approx 1x per second while update is downloading. If download success, sent once when update starts installing and once more after install completes successfully. If any errors occur while the update is downloading or installing, a separate error notification will be sent.
+Payload
+
+NameTypeDescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?PercentCompleteintegerDownload or installation percentage completed
+Status
+enumCurrent update status. (One of: UPDATE_DOWNLOADING, UPDATE_INSTALLING, UPDATE_FAILED)
+TaskController.FileTransferStatus
+Provides an update on the status of an ongoing file transfer operation
+
+Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+PercentageComplete
+integerThe percentage complete of an ongoing file transfer
+SourcePath
+stringPath to the source file or directory. If the path is a directory, that indicates a recursive copy of that directory.
+
+TargetPathstringPath to the output file or directory
+TaskController.GetStatus
+Response to a command, or notification sent to the client by the server
+
+Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?AlignmentInfoAlignmentInfoType?Describes status for an alignment task.
+CenteringInfo
+CenteringInfoType?Describes status for a centering, i.e. Precise GoTo, task.DarkGenerationInfoDarkGenerationInfoType?
+ImagingInfo
+ImagingInfoType?Describes status of an imaging operation, either in progress, or previously completed/failed.
+InitializationInfo
+InitializationInfoType?Describes status for the initialization task.
+IsReady
+booleanTRUE if SmartScope has been successfully initialized
+
+IsFakeInitialized
+
+boolean?TRUE if initialization is faked for indoor testing/demo purposes. FALSE if initialization is real. Omitted if IsReady is FALSE (i.e. if scope is not initialized at all). See TaskController.RunInitialize.
+Stage
+enumDefines what type of event occurred. (One of: STARTED, IN_PROGRESS, COMPLETE, STOPPED)
+
+
+
+
+State
+
+
+
+
+enumDefines what type of task the task info block is defining. (One of: UNKNOWN, IDLE, IMAGING_OBJECT, IMAGING_LIST, CENTERING_TARGET, SAMPLE_CAPTURE, INITIALIZING,
+ALIGNING, FOCUSING, GENERATING_DARKS, GENERATING_FLATS, DOWNLOADING_UPDATE)
+TaskController.SafeToRemoveFlashDrive
+Indicates that the flash drive that the user plugged in is now safe to be removed.
+
+Payload
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+Enums
+
+7 enums
+
+CommandModule CommandType ErrorCodeEnum ISOValueEnum CalibrationPhaseEnum TaskStatusEnum
+FactoryCalibrationControllerCollimationStepEnum
+
+CommandModule
+Modules which receive and send commands, responses, and notifications
+
+Value"Camera""Debug""DewHeater""Disk"
+"Environment""Error""FactoryCalibrationController""Focuser""HostController""ImageServer""LedRing""LiveStream""Mount""Network""OrientationSensor""System""TaskController"
+CommandType
+Commands are published to the server from a client, Responses are sent by the server in reply to commands, Notifications are events generated by the server
+
+Value"Command""Notification""Response"
+ErrorCodeEnum
+(No description)
+
+Name	Value	Descripti
+NO_ERROR
+0Message was h without issueThe destination
+UNKNOWN_DESTINATION-1address is unk the system
+UNKNOWN_COMMAND
+-2The command unrecognized b system
+INVALID_DATA
+-3Values in the d section of the message were
+MISSING_DATA
+-4Data that is req was not found message
+
+ILLEGAL_STATE_OPERATION
+
+-5A received com was discarded because Origin booting up.
+
+
+NEEDS_INTERNET_CONNECTION
+
+
+-6This is a rare e which is throw requested acti requires an inte connect and n present
+
+INTERRUPTED
+
+-7Task was delib interrupted or cancelled by u input.
+EL_PANEL_CONNECTION_ERROR
+-8Failed to find o connect to the panel.
+AUXBUS_NO_RESPONSE
+-9Failed to get an response from bus hardware d
+CAMERA_ERROR
+-10General camer communication
+UNHANDLED_EXCEPTION
+-11Exception thro attempting to p a SmartMessag
+
+
+
+PERMISSION_DENIED
+-12General permis failure.
+
+FACTORY_CALIBRATION_INCOMPLETE
+
+-13Unit has not co factory QA pro User should co Celestron tech support.
+CANT_OPEN_FILE
+-14Failed to open regular file.
+
+IO_ERROR
+
+-20IO Exception or Response exce caught in hard calibration.
+
+THERMISTOR_CONNECTION_ERROR
+
+-21Failed to detec thermistor sen thermistor gav reading.
+
+FAILED_TO_FIND_STARS
+
+-22Failed to find s during factory calibration or autofocus.ORIENTATION_NOT_LEVELED-23
+FAILED_TO_INIT_AUX
+-24Failed to initiali Bus.
+FAILED_TO_INIT_MOUNT
+-25Failed to initiali Mount.
+FAILED_TO_INIT_TCPMONITOR
+-26Failed to initiali Monitor.
+FAILED_TO_INIT_FOCUSER
+-27Failed to initiali Focus motor.
+FAILED_TO_INIT_LEDRING
+-28Failed to initiali Ring.
+FAILED_TO_INIT_ORIENTATION_SENSOR
+-29Failed to initiali Orientation Se
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+t
+
+
+LOST_CONNECTION_WITH_CAMERA-45FAILED_TO_FIND_CAMERA-46FOUND_MORE_THAN_ONE_CAMERA-47
+FAILED_TO_SET_SYSTEM_CLOCK
+-50Failed to set ra pi system clock specified time.
+FAILED_TO_FIND_ENOUGH_STARS
+-51Did find enoug to plate solve o images.
+LISA_PLATE_SOLVE_FAILED
+-52Plate solver wa unable to deter image center.
+FAILED_TO_ADD_ALIGNMENT_REFERENCE
+-53Could not add alignment refer mount model.
+RETRYING_PRECISE_GOTO
+-54Precise GoTo f plate solve.
+FAILED_TO_FINISH_ALIGNMENT
+-55Failed to finish alignment.
+TEMPERATURE_SHIFT_FOCUS_FAILED
+-56An error occur during tempera shift auto focuFAILED_TO_FIND_TARGET-57Precise GoTo fRETRYING_IMAGE_STACKING-58
+IMAGE_STACKING_FAILED
+-59Failed to stack current image.
+FAILED_TO_START_INITIALIZATION
+-60Failed to set m initial altitude p
+OTA_ORIENTAION_FLIPPED
+-61OTA is upside Initialization ab
+FAILED_TO_FIND_DARK
+-62No dark library skipping dark subtraction.
+
+
+FAILED_TO_FIND_FLAT
+-63No flat image f skipping flat fie
+RUNNING_TASK_FAILED
+-64Task exited by exception or no enough disk sp
+DETECTED_STREAKY_STARS
+-65Detected strea stars in the ima
+OBJECT_IMAGING_FAILED
+-66Failed to find e stars in the 5 c images. Imagin
+FAILED_TO_START_IMAGE_TRANSFER
+-67Could not begi transfer to flas process.FAILED_TO_FIND_MATCHING_STARS-68
+POWERING_DOWN_ORIGIN_ON_LIST_COMPLETION
+-69Origin is shutti Will be reboote toggling the sw
+FAILED_TO_READ_IMAGE_DATA
+-70Failed to read t current image stacking.
+INCOMPATIBLE_SOLVE_CHECK_CLUTCHES
+-71Precise Goto p solve incompat with mount mo
+
+
+FIRST_TARGET_TOO_CLOSE_TO_INITIALIZATION
+
+
+-72Streaking stars result if your fir target is not 15 degrees in AZI from your initia position.
+INITIALIZATION_STARTED_WHEN_ALREADY_RUNNING
+-73Initialization wa already running called.IMAGE_CALIBRATION_FAILED-74INITIALIZATION_FAILED_TO_FIND_STARS-75
+
+INITIALIZATION_FAILED_TO_FOCUS-76Initialization fai find focus.
+
+INITIALIZATION_FAILED_TOO_DARK
+
+-77Plate results in user failed to r lens cap; abort initialization.
+
+INITIALIZATION_FAILED_TOO_BRIGHT
+
+-78Image brightne high; probably at window, clou Moon, etc.; ab initialization.
+INITIALIZATION_FAILED_ALIGNMENT
+-79First plate solv attempt(s) faile Advising user t
+
+
+GOTO_TARGET_OUT_OF_RANGE
+
+
+-80Refusing GoTo because target coordinates we below horizon, close to zenith, otherwise out o
+WIFI_INCORRECT_PASSWORD
+-100Could not join due to passwor authentication
+WIFI_INVALID_PASSWORD_LENGTH
+-101Password must between 8 and characters.
+WIFI_SPECIFIED_NETWORK_NOT_CONFIGURED
+-102Unknown netw SSID.WIFI_SPECIFIED_NETWORK_NOT_VISIBLE-103
+
+UPDATE_FAILED_TO_DOWNLOAD
+
+-104Network failure attempting to download soft update packag
+UPDATE_ERROR_READING_FILE
+-105Problem readin update file from
+
+internet (depre
+UPDATE_FAILED_TO_FIND_FILE
+-106Software upda not found (deprecated).
+UPDATE_FAILED_TO_SAVE_FILE
+-107Failed to save s update file (deprecated).
+UPDATE_INVALID_ARCHIVE
+-108Update archive invalid - no inst (deprecated).
+BATTERY_LOW_CLOSE_TO_SHUTDOWN
+-109Battery level is system may sh automatically s
+INVALID_COUNTRY_CODE
+-110Invalid country regulatory domINVALID_ACCESS_POINT_MODE-111UPDATE_FAILED_TO_DECRYPT_FILE-114
+
+UPDATE_NOT_READY
+
+-115Software upda ready to install not be complet downloaded.
+UPDATE_TIMED_OUT
+-116Software upda installation tim after 5 minutes
+UPDATE_FAILED
+-117Software upda command faile
+
+SOURCE_FILE_DOESNT_EXIST
+
+-200Can't find sour for file transfer image server operation.
+TARGET_FILE_DOESNT_EXIST
+-201File could not b created during transfer operatShell command
+
+TIMEOUT-202transfer operat timed out.ORIENTATION_FAILED_45_DEG-203ORIENTATION_FAILED_90_DEG-204ORIENTATION_FAILED_RETURN-205
+
+ORIENTATION_FAILED_ZEROS_NOT_EVENLY_SPACED
+
+-206Orientation sen failed factory calibration real check.
+
+ORIENTATION_FAILED_MINMAX_NOT_EVENLY_SPACED
+
+-207Orientation sen failed factory calibration real check.
+
+ORIENTATION_FAILED_MINMAX_Z_NOT_CLOSE_TO_45
+
+-208Failed orientati sensor factory for +/- 5.5 degr 1G = EXACTLY
+
+ORIENTATION_FAILED_ALTXY_RANGE_NOT_90
+
+-209Orientation sen failed factory calibration che range close to close to -90.
+ORIENTATION_FAILED_ANGLE_AT_ALTXY_MINMAX_IS_INVALID
+-210Failed orientati sensor factory clutches are lo
+
+ORIENTATION_FAILED_MINMAX_ALTXY_NOT_CLOSE_TO_45
+
+-211Failed orientati sensor factory the values sho close to +/- 45
+
+ORIENTATION_FAILED_MINMAX_ALTXY_NOT_EVENLY_SPACED
+
+-212Orientation sen failed factory calibration real check.
+
+NO_REMOVABLE_MEDIA_DETECTED
+
+-280No removable detected durin
+
+drive file transf operation.MULTIPLE_REMOVABLE_MEDIA_DETECTED-281
+
+MOUNT_ERROR_REMOVABLE_MEDIA
+
+-282Unhandled erro mounting flash filesystem.
+FILE_TRANSFER_INTERRUPTED
+-283Interrupted wh transferring FA images.
+
+FLASHDRIVE_TRANSFER_ALREADY_IN_PROGRESS
+
+-284There is alread transfer in prog user may have requested the transfer twice.
+IO_ERROR_REMOVABLE_MEDIA
+-298IO exception w transferring FA images.
+UNKNOWN_ERROR_REMOVABLE_MEDIA
+-299Error while tran images to remo media.
+
+IMAGING_LIST_DOESNT_EXIST
+
+-300Received GetFinalStacke with ListUuid t not in imagingL
+
+
+
+OBJECT_NOT_PRESENT_IN_DATABASE
+
+
+
+-301Failed to read t map and retrie information ab object, or recei GetFinalStacke with ImageUuid not present in t observations database.
+FINAL_STACKED_MASTER_MISSING
+-302There are no s images or direc
+
+DIRECTORY_LIST_EMPTY-303There are no s astrophotograp images or direc
+NUMBER_OF_DIGITS_DONT_MATCH
+-400Host Pin must 4 digits.
+FAILED_TO_RETRIEVE_PIN
+-401Failed to retriev host pin. Pleas pin first.
+ENTERED_WRONG_PIN
+-402Failed to reset Please enter th correct pin.
+
+HOSTS_LIST_EMPTY
+
+-403There no hosts into the list. Ne add the hosts i list.UNKNOWN-404
+ANEMOMETER_NOT_CONNECTED
+-505Anemometer n connected.
+INVALID_SMART_MESSAGE
+-600Invalid messag received from app.
+INVALID_JSON_FROM_CLIENT
+-601Message route received invalid
+TIMED_OUT_WAITING_FOR_CORE
+-602Messasge rout out waiting for response from
+
+DEFERRED_ERROR
+
+-603Deferred mess router error in WebSocketSer should be impo
+BAD_MQTT_CONNECTION
+-604Message route to publish mes MQTT.
+WEB_SOCKET_SERVER_INVALID_STATE
+-605WebSocketSer an invalid state
+
+
+INVALID_INTERNAL_COMMUNICATION
+-606WiFi controller unknown commCALIBRATION_FAILED-700
+BIT_DEPTH_NOT_SUPPORTED
+-701Bit depth is not supported whil generating dar
+
+INVALID_CALIBRATION_SETTINGS
+
+-702Settings valida failed while ge darks.
+FAILED_TO_ACQUIRE_IMAGES
+-703Failed to acquir calibration ima
+
+TOO_FEW_DARK_PIXELS_DETECTED
+
+-704Really low num hot pixels dete dark image; so is wrong with d image.
+
+TOO_MANY_DARK_PIXELS_DETECTED
+
+-705Too many hot p detected in dar image; someth wrong with dar
+
+FLAT_IMAGE_TOO_DARK
+
+-706Flat image is to User should ch cap and light s for flat generat
+
+
+
+
+
+DARKS_AND_FLATS_NEED_REGENERATION
+
+
+
+
+
+-707Existing darks should be rege This may happ the camera is replaced. An a should recomm that the user regenerate dar This error code only be sent on startup.Dynamic range
+
+
+DYNAMIC_RANGE_TOO_HIGH_FOR_HIGH_ISO
+-708high for high IS imaging task w ignore the high and use the de value (200).
+AUX_INVALID_INPUT
+-801Input aux devic command para was not valid.
+
+AUX_INVALID_OUTPUT
+
+-802Output data fro mount was not garbage, could parsed, etc.)
+AUX_OPEN_FAIL
+-804Can't open ser for aux bus communication
+AUX_CLOSE_FAIL
+-805Can't close ser for aux bus communicaion
+AUX_READ_FAIL
+-806Can't read from port for aux bu communication
+AUX_WRITE_FAIL
+-807Can't write to s port for aux bu communication
+
+AUX_NOT_SUPPORTDED
+
+-808Functionality w requested that implemented/n supported by t device.
+
+AUX_TIMED_OUT
+
+-809No response w recieved from device before a operation time
+AUX_NOT_OPEN
+-810Aux bus serial not open, or is by another pro
+AUX_NOT_RUNNING-811Aux bus run loo stopped.
+
+ISOValueEnum
+Allowed values for camera's light sensitivity, i.e. gain, from least to most light-sensitive. ISO 100 roughly corresponds to gain 10 dB, ISO 200 to 20 dB, and ISO 2000 to 40 dB. Treat these values with caution.
+
+Value"100""200""2000"
+CalibrationPhaseEnum
+Names the currently running Factory Calibration Phase.
+
+ValueDescription"IDLE""UPDATE""HARDWARE_CALIBRATION""FOCUS""HOT_SPOT_CENTERING""COLLIMATION""FA_TEST""DARK_GENERATION""FLAT_GENERATION""BATTERY"
+TaskStatusEnum
+Stacking status of each object - WAITING, MOVING_TO_OBJECT,
+
+FOCUSING_AND_MOVING_TO_OBJECT, COMPLETED, RUNNING, FAILED
+
+ValueDescription"WAITING""MOVING_TO_OBJECT""FOCUSING_AND_MOVING_TO_OBJECT""COMPLETED""RUNNING""FAILED"
+FactoryCalibrationControllerCollimationStepEnum
+Determines which step is running currently.
+
+ValueDescription"IDLE""CHECKING_ORIENTATION""MOVING_STAR"
+Types
+
+16 types
+
+CommandHeaders ResponseHeaders BaseResponsePayload HardwareCalibrationInfoType CollimationInfoType DarkGenerationInfoType FlatGenerationInfoType FATestInfoType VisibleNetworkDescriptor EnabledNetworkDescriptor LocationType
+
+ImagingInfoType ObjectImagingInfoType AlignmentInfoType CenteringInfoType InitializationInfoType
+
+CommandHeaders
+(No description)
+
+Properties
+
+Name	Type	DescriptionCommandstring
+Destination
+CommandModuleModules which receive and send commands, responses, and notificationsSequenceIDintegerSomething meaningful to the sourceSourcestringthe source of the command
+
+Type
+
+CommandTypeCommands are published to the server from a client, Responses are sent by the server in reply to commands, Notifications are events generated by the server
+ResponseHeaders
+(No description)
+
+Properties
+
+NameTypeDescriptionCommandstringThe notification, or command being responded toDestinationstringThe client being responded to, or all
+SequenceID
+integer?Something meaningful to the source, or the SequenceID received if a response
+Source
+CommandModuleModules which receive and send commands, responses, and notifications
+
+Type
+CommandTypeCommands are published to the server from a client, Responses are sent by the server in reply to commands, Notifications are events generated by the server
+BaseResponsePayload
+(No description)
+
+Properties
+
+Name	Type	DescriptionErrorCodeErrorCodeEnum?ErrorMessagestring?
+HardwareCalibrationInfoType
+(No description)
+
+Properties
+
+NameTypeDescription
+
+PhaseStage
+
+TaskStatusEnumStacking status of each object - WAITING, MOVING_TO_OBJECT, FOCUSING_AND_MOVING_TO_OBJECT COMPLETED, RUNNING, FAILED
+PercentageCompleted
+integerPercentage completed of the current phaseVerifiedMountbooleanTRUE if verifiedVerifiedFansbooleanTRUE if verifiedVerifiedLedRingbooleanTRUE if verifiedVerifiedCamerabooleanTRUE if verifiedVerifiedEnvironmentalSensorbooleanTRUE if verifiedVerifiedWiFibooleanTRUE if verifiedVerifiedOrientationSensorbooleanTRUE if verified
+VerifiedThermistorbooleanTRUE if verifiedVerifiedDewHeaterbooleanTRUE if verifiedIsFocusMotorCalibratedbooleanTRUE if calibrated
+
+CollimationInfoType
+(No description)
+
+Properties
+
+NameTypeDescription
+
+PhaseStage
+
+TaskStatusEnumStacking status of each object - WAITING, MOVING_TO_OBJECT, FOCUSING_AND_MOVING_TO_OBJECT, COMPLETED, RUNNING, FAILEDPercentageCompletedintegerPercentage completed of the current phase
+CollimationStep
+enumDetermines which step is running currently. (One of: IDLE, CHECKING_ORIENTATION, MOVING_STAR)
+IsCameraOriented
+booleanTRUE if camera orienatation is within the allowed limitsCameraOrientationdoubleCamera orientation angle value in radians
+MovingStarCompleted
+booleanTRUE if moving the star to center is completed
+DarkGenerationInfoType
+(No description)
+
+Properties
+
+Name	Type	Description
+CurrentExposure
+doubleExposure time (in seconds) of the current dark being generatedAllowed values for camera's light sensitivity, i.e. gain, from least to most light-sensitive. ISO 100
+CurrentISOISOValueEnumroughly corresponds to gain 10 dB, ISO 200 to 20 dB, and ISO 2000 to 40 dB. Treat these values with caution.CurrentBinningintegerBinning of the current dark being generated
+PercentageComplete
+integerPercentage complete (0% - 100%) for the entire list of darks to generate
+FlatGenerationInfoType
+(No description)
+
+Properties
+
+NameTypeDescription
+
+PhaseStage
+
+TaskStatusEnumStacking status of each object - WAITING, MOVING_TO_OBJECT, FOCUSING_AND_MOVING_TO_OBJECT, COMPLETED, RUNNING, FAILEDPercentageCompletedintegerPercentage completed of the current phase
+FATestInfoType
+(No description)
+
+Properties
+
+NameTypeDescription
+
+PhaseStage
+
+TaskStatusEnumStacking status of each object - WAITING, MOVING_TO_OBJECT, FOCUSING_AND_MOVING_TO_OBJECT, COMPLETED, RUNNING, FAILED
+PercentageCompleted
+integerPercentage completed of the current phase
+
+FATestStep
+
+enumDetermines which step is running currently. (One of: IDLE, CHECKING_ORIENTATION, MOVING_STAR, AUTO_FOCUSING, MANUAL_CAPTURE, AUTO_CAPTURE)
+IsCameraOrientedbooleanTRUE if camera orienatation is within the allowed limits
+CameraOrientation
+double?Camera orientation angle value sent only when camera orientaion step will be running
+MovingStarCompleted
+booleanTRUE if moving the star to center is completedIsAutoFocusCompletedbooleanTRUE if found focus positionFocusPositionintegerNew found auto focus positionIsAutoCaptureCompletedbooleanTRUE if auto capture routine is finished
+
+CurrentStarLocation
+
+enum?Will be used to let app know where is star is moving in Auto imaging mode. (One of: CENTER, LOWER_LEFT, LOWER_RIGHT, UPPER_LEFT, UPPER_RIGHT, UNKNOWN)
+VisibleNetworkDescriptor
+This is a network descriptor
+
+Properties
+
+Name	Type	DescriptionSSIDstringIsVisiblebooleanHasConfiguredPasswordbooleanHasWrongPasswordbooleanIsConnectedbooleanSignalStrengthinteger
+EnabledNetworkDescriptor
+Describes whether or not the network is enabled
+
+Properties
+
+
+Name	Type	DescriptionSSIDstringWrongPasswordboolean
+LocationType
+Describes a particular object or target location to be imaged, both as a single target (for the TaskController.RunImaging command) and for multiple targets (in the TaskController.RunObservingList command).
+Properties
+
+Name	Type	DescriptionUuidstringUnique ID for this object or target location.
+
+Ra
+
+doubleright ascension coordinate of target to slew to before imaging, J2000, radians. If absent, telescope will not slew and imaging will begin at current RA/Dec coordinates.
+
+Dec
+
+doubledeclination coordinate of target to slew to before imaging, J2000, radians. If absent, telescope will not slew and imaging will begin at current RA/Dec coordinates.
+MinimumStartTime
+string?Minimum time before imaging should begin, Format: DD MM YYYY hh:mm:ss where hh is a 24hr clock. Assumed to be in local time zone.
+
+TotalDuration
+
+doubleTotal duration in seconds to stack and image. If not present, then imaging will run until TaskController.CancelImaging or HaltTasks is received, until stacking fails, or 12 hours have elapsed.
+SaveRawImage
+boolean?If TRUE, all raw images will be saved on the raspberry pi's local SD card storage.ObjectSizedouble?Apparent size of the target object in radians.
+ObjectMagnitude
+double?Visual magnitude (brightness) of the target object
+
+
+
+Name
+
+
+string?Name of the target object to be imaged. If absent, a default name will be formed from the target RA/Dec coordinates. The directory where raws and FinalStackedMaster images for this target are saved on the raspberry pi, is constructed from this name, and the imaging start time.
+
+
+ExposureTime
+
+
+double?Individual raw frames should use this particular exposure time in seconds. (As opposed to TotalDuration, which is the desired total duration of the entire stacked image, so number of individual frames combined to form the FinalStackedMaster should be TotalDuration / ExposureTime.)
+
+ISO
+
+ISOValueEnum?Allowed values for camera's light sensitivity, i.e. gain, from least to most light-sensitive. ISO 100 roughly corresponds to gain 10 dB, ISO 200 to 20 dB, and ISO 2000 to 40 dB. Treat these values with caution.
+ImagingInfoType
+Describes status of an imaging operation, either in progress, or previously completed/failed.
+
+Properties
+
+Name	Type	Description
+
+ListStatus
+
+enum?List status, indicates whether imaging is currently running or has finished. (One of: RUNNIN FINISHED)
+
+
+TotalObjects
+
+
+integerTotal number of objects in the observing list. Will be 1 if this is single-object imaging task, as created by TaskController.RunImaging, or more than 1 if created by TaskController.RunObservingLiUuid that identifies the imaging
+
+ListUuid
+stringtask. This is sent by the client application when they create th imaging task via TaskController.RunImaging or RunObservingList.
+
+ImageUuid
+
+stringUuid for the current object bein imaged. If nothing is currently being imaged, the Uuid for the last object that was imaged.
+NumObjectsRemaining
+integernumber of targets remaining in an observing list (0 is not runni an observing list)ObjectInfoListarray<ObjectImagingInfoType>?
+
+ObjectImagingInfoType
+Describes imaging status for a particular object or target location in an observing list.
+
+Properties
+
+Name	Type	Description
+ObjectName
+stringName of the current target (defined by the Name field in the RunImaging command)
+Uuid
+stringUuid for the object. This is set by the client application when they create the imaging list.StackDepthintegerCurrent stackdepth of the image stacker
+TotalTime
+doubleTotal compounded exposure time in seconds since stacking began on the current target
+RemainingTime
+doubleTime in seconds remaining until current target imaging session is complete (only if specified by TotalDuration in RunImaging command)
+
+MinimumStartTime
+
+stringMinimum start time string copied from original message Format: DD MM YYYY hh:mm:ss where hh is a 24hr clock (empty string if not sent). Assumed to be in local time zone.Stacking status of each object - WAITING,
+StackingStatusTaskStatusEnumMOVING_TO_OBJECT, FOCUSING_AND_MOVING_TO_OBJECT, COMPLETED, RUNNING, FAILED
+AlignmentInfoType
+Describes status for an alignment task.
+
+Properties
+
+NameTypeDescription
+NumPointsRemaining
+integerNumber of alignment points remaining to be considered complete
+NumPoints
+integerNumber of points successfully added to the mount model during this alignmentPercentageCompleteintegerPercentage complete (0% to 100%)
+CenteringInfoType
+Describes status for a centering, i.e. Precise GoTo, task.
+
+Properties
+
+NameTypeDescription
+CenteringStatus
+enumDescribes operation currently being performed. These operations may repeat multiple times before the task finishes. (One of: SLEWING, ALIGNING, FOCUSING)
+InitializationInfoType
+Describes status for the initialization task.
+
+Properties
+
+NameTypeDescription
+CurrentStep
+enumDefines the step during the initialization process. (One of: NONE, MOVING_MOUNT, ALIGNING, FOCUSING)NumPointsRemainingintegerNumber of alignment points remaining to be considered complete
+
+
+NumPoints
+integerNumber of points successfully added to the mount model during this alignment
+PositionOfFocus
+integer-1 if focus not found, else the location where focus was foundPercentageCompleteintegerPercentage complete (0% - 100%)

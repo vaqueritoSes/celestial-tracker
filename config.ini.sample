@@ -1,0 +1,30 @@
+# Celestron Origin Satellite Tracker Configuration
+# Copy this file to config.ini and update with your values
+
+[OBSERVER]
+# Your observation location (decimal degrees)
+latitude = 34.0522
+longitude = -118.2437
+altitude_m = 71
+
+[N2YO]
+# Get your free API key from https://www.n2yo.com/api/
+api_key = YOUR_N2YO_API_KEY_HERE
+
+[CELESTRON]
+# Your Celestron Origin telescope IP or hostname
+# Use 'origin.local' if on same network, or IP like '192.168.1.100'
+origin_ip = origin.local
+
+# File paths for tracking data
+norad_file_path = norad_ids.txt
+tle_plan_file = tle_plan.json
+trajectory_file = trajectory.json
+
+[CAMERA]
+# Camera settings for satellite imaging
+exposure_seconds = 0.5
+iso = 800
+binning = 2
+bit_depth = 16
+image_cooldown_seconds = 5
