@@ -56,7 +56,7 @@ An advanced autonomous satellite tracking system designed specifically for the *
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/celestial-tracker.git
+git clone https://github.com/ctrevinoi1/celestial-tracker.git
 cd celestial-tracker
 ```
 
@@ -244,8 +244,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - 📖 [Documentation](docs/)
-- 🐛 [Issue Tracker](https://github.com/yourusername/celestial-tracker/issues)
-- 💬 [Discussions](https://github.com/yourusername/celestial-tracker/discussions)
+- 🐛 [Issue Tracker](https://github.com/ctrevinoi1/celestial-tracker/issues)
+- 💬 [Discussions](https://github.com/ctrevinoi1/celestial-tracker/discussions)
 
 ## ⚠️ Disclaimer
 

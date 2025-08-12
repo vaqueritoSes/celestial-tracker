@@ -17,7 +17,7 @@ setup(
     description="Autonomous satellite tracking system for Celestron Origin telescope",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/celestial-tracker",
+    url="https://github.com/ctrevinoi1/celestial-tracker",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 4 - Beta",
